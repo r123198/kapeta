@@ -2,200 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import CoffeeShopCard from './CoffeeShopCard'
-
-// Mock data for coffee shops
-const mockCafes = [
-  {
-    id: 1,
-    name: "Kape Alley",
-    location: "City Center, Iligan",
-    image: "/placeholder-cafe-1.jpg",
-    ratings: {
-      overall: 4.2,
-      price: 3.0,
-      wifi: 4.5,
-      coffee: 4.8,
-      noise: 3.2,
-      outlets: 4.0
-    },
-    wifiSpeed: "35 Mbps",
-    priceRange: "₱90-180",
-    weather: { temp: 27, icon: "sunny" },
-    isOpen: true,
-    crowdLevel: "moderate"
-  },
-  {
-    id: 2,
-    name: "Brew & Grind Co",
-    location: "Tibanga, Iligan",
-    image: "/placeholder-cafe-2.jpg",
-    ratings: {
-      overall: 4.5,
-      price: 3.5,
-      wifi: 4.8,
-      coffee: 4.9,
-      noise: 4.2,
-      outlets: 4.5
-    },
-    wifiSpeed: "28 Mbps",
-    priceRange: "₱70-120",
-    weather: { temp: 26, icon: "cloudy" },
-    isOpen: true,
-    crowdLevel: "empty"
-  },
-  {
-    id: 3,
-    name: "MSU Coffee Hub",
-    location: "University Area",
-    image: "/placeholder-cafe-3.jpg",
-    ratings: {
-      overall: 4.0,
-      price: 4.2,
-      wifi: 4.9,
-      coffee: 3.8,
-      noise: 2.8,
-      outlets: 4.8
-    },
-    wifiSpeed: "45 Mbps",
-    priceRange: "₱60-100",
-    weather: { temp: 28, icon: "sunny" },
-    isOpen: true,
-    crowdLevel: "busy"
-  },
-  {
-    id: 4,
-    name: "Cafe Palao",
-    location: "Palao, Iligan",
-    image: "/placeholder-cafe-4.jpg",
-    ratings: {
-      overall: 3.8,
-      price: 4.0,
-      wifi: 3.5,
-      coffee: 4.2,
-      noise: 4.5,
-      outlets: 3.2
-    },
-    wifiSpeed: "22 Mbps",
-    priceRange: "₱80-150",
-    weather: { temp: 25, icon: "rainy" },
-    isOpen: false,
-    crowdLevel: "empty"
-  },
-  {
-    id: 5,
-    name: "Mahayahay Brew",
-    location: "Mahayahay, Iligan",
-    image: "/placeholder-cafe-5.jpg",
-    ratings: {
-      overall: 4.3,
-      price: 3.8,
-      wifi: 4.2,
-      coffee: 4.6,
-      noise: 3.8,
-      outlets: 4.1
-    },
-    wifiSpeed: "32 Mbps",
-    priceRange: "₱75-130",
-    weather: { temp: 27, icon: "sunny" },
-    isOpen: true,
-    crowdLevel: "moderate"
-  },
-  {
-    id: 6,
-    name: "Tambo Coffee Corner",
-    location: "Tambo, Iligan",
-    image: "/placeholder-cafe-6.jpg",
-    ratings: {
-      overall: 3.9,
-      price: 4.1,
-      wifi: 3.8,
-      coffee: 4.0,
-      noise: 4.0,
-      outlets: 3.5
-    },
-    wifiSpeed: "25 Mbps",
-    priceRange: "₱65-110",
-    weather: { temp: 26, icon: "cloudy" },
-    isOpen: true,
-    crowdLevel: "moderate"
-  },
-  {
-    id: 7,
-    name: "City Center Espresso",
-    location: "City Center, Iligan",
-    image: "/placeholder-cafe-7.jpg",
-    ratings: {
-      overall: 4.1,
-      price: 3.2,
-      wifi: 4.3,
-      coffee: 4.4,
-      noise: 3.5,
-      outlets: 4.2
-    },
-    wifiSpeed: "38 Mbps",
-    priceRange: "₱85-160",
-    weather: { temp: 28, icon: "sunny" },
-    isOpen: true,
-    crowdLevel: "busy"
-  },
-  {
-    id: 8,
-    name: "University Grounds",
-    location: "University Area",
-    image: "/placeholder-cafe-8.jpg",
-    ratings: {
-      overall: 3.7,
-      price: 4.3,
-      wifi: 4.6,
-      coffee: 3.5,
-      noise: 2.5,
-      outlets: 4.7
-    },
-    wifiSpeed: "42 Mbps",
-    priceRange: "₱55-95",
-    weather: { temp: 27, icon: "sunny" },
-    isOpen: true,
-    crowdLevel: "busy"
-  },
-  {
-    id: 9,
-    name: "Tibanga Terrace",
-    location: "Tibanga, Iligan",
-    image: "/placeholder-cafe-9.jpg",
-    ratings: {
-      overall: 4.4,
-      price: 3.6,
-      wifi: 4.1,
-      coffee: 4.7,
-      noise: 4.3,
-      outlets: 3.8
-    },
-    wifiSpeed: "30 Mbps",
-    priceRange: "₱70-125",
-    weather: { temp: 25, icon: "cloudy" },
-    isOpen: true,
-    crowdLevel: "empty"
-  },
-  {
-    id: 10,
-    name: "Palao Perk",
-    location: "Palao, Iligan",
-    image: "/placeholder-cafe-10.jpg",
-    ratings: {
-      overall: 3.6,
-      price: 4.0,
-      wifi: 3.2,
-      coffee: 4.1,
-      noise: 4.4,
-      outlets: 3.0
-    },
-    wifiSpeed: "20 Mbps",
-    priceRange: "₱75-140",
-    weather: { temp: 26, icon: "rainy" },
-    isOpen: false,
-    crowdLevel: "empty"
-  }
-]
+import { getCafesFromSupabase, Cafe } from '@/lib/data'
 
 interface CoffeeShopGridProps {
   filters: any
@@ -207,15 +14,58 @@ interface CoffeeShopGridProps {
 }
 
 export default function CoffeeShopGrid({ filters, maxCols }: CoffeeShopGridProps) {
-  const [filteredCafes, setFilteredCafes] = useState(mockCafes)
-  const [loading, setLoading] = useState(false)
+  const [allCafes, setAllCafes] = useState<any[]>([])
+  const [filteredCafes, setFilteredCafes] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
 
+  // Fetch all cafes from Supabase on mount
   useEffect(() => {
+    async function loadData() {
+      setLoading(true)
+      try {
+        const data = await getCafesFromSupabase()
+        
+        // Map Supabase Cafe schema to the structure expected by the grid and card components
+        const mapped = data.map((cafe, index) => ({
+          id: index + 1,
+          name: cafe.name,
+          location: cafe.location,
+          image: cafe.image || '/placeholder-cafe-1.jpg',
+          ratings: {
+            overall: cafe.stats.total || 4.0,
+            price: cafe.stats.taste || 3.5, // map stats to match the 6-dimension ratings
+            wifi: cafe.stats.vibe || 4.0,
+            coffee: cafe.stats.taste || 4.0,
+            noise: cafe.vibe.noise === 'Loud' ? 2.5 : cafe.vibe.noise === 'Quiet' ? 4.5 : 3.5,
+            outlets: cafe.vibe.outlets === 'Abundant' ? 4.8 : cafe.vibe.outlets === 'Limited' ? 3.0 : 4.0
+          },
+          wifiSpeed: cafe.vibe.wifi || '30 Mbps',
+          priceRange: '₱80-155',
+          weather: { temp: 27, icon: cafe.status === 'Open' ? 'sunny' : 'cloudy' },
+          isOpen: cafe.status === 'Open',
+          crowdLevel: cafe.atmosphere || 'moderate'
+        }))
+        
+        setAllCafes(mapped)
+        setFilteredCafes(mapped)
+      } catch (err) {
+        console.error('Failed to load cafes for grid:', err)
+      } finally {
+        setLoading(false)
+      }
+    }
+    loadData()
+  }, [])
+
+  // Apply filters whenever filters or allCafes list changes
+  useEffect(() => {
+    if (allCafes.length === 0) return
+
     setLoading(true)
     
     // Simulate filtering delay
     const timer = setTimeout(() => {
-      let filtered = [...mockCafes]
+      let filtered = [...allCafes]
 
       // Search filter
       if (filters.search) {
@@ -257,7 +107,7 @@ export default function CoffeeShopGrid({ filters, maxCols }: CoffeeShopGridProps
     }, 300)
 
     return () => clearTimeout(timer)
-  }, [filters])
+  }, [filters, allCafes])
 
   // Build grid classes based on maxCols prop
   let gridClass = 'grid gap-6 px-2 sm:px-4'

@@ -1,18 +1,6 @@
+import { TESTIMONIALS } from '@/lib/constants'
+
 export default function TestimonialsSection() {
-  const testimonials = [
-    {
-      quote: "kapeta! helps me find coffee shops that are perfect for remote work in Iligan, based on factors like wifi speed, noise level, and coffee quality",
-      publication: "Local News Iligan"
-    },
-    {
-      quote: "The ratings of kapeta!'s cafes are constantly updated in real-time based on user input from the local coffee community",
-      publication: "Mindanao Daily"
-    },
-    {
-      quote: "kapeta! is a local aggregator for coffee destinations, ranking wifi, coffee beans, and work environment",
-      publication: "TechNews PH"
-    }
-  ]
 
   return (
     <section className="py-20 bg-white">
@@ -27,7 +15,7 @@ export default function TestimonialsSection() {
         </div>
 
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {testimonials.map((testimonial, index) => (
+          {TESTIMONIALS.map((testimonial, index) => (
             <div
               key={index}
               className="bg-white rounded-xl p-8 shadow-lg border border-gray-100 hover:shadow-xl transition-shadow duration-300"

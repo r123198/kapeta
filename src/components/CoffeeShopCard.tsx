@@ -55,8 +55,15 @@ export default function CoffeeShopCard({ cafe }: CoffeeShopCardProps) {
     >
       {/* Background Image */}
       <div className="relative aspect-[4/4.5] min-h-[260px] rounded-xl overflow-hidden bg-gradient-to-br from-primary/20 to-accent/20">
-        {/* Placeholder background - in real app this would be cafe image */}
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/30 to-accent/30" />
+        <img 
+          src={cafe.image} 
+          alt={cafe.name}
+          onError={(e) => {
+            e.currentTarget.src = 'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?q=80&w=600&auto=format&fit=crop';
+          }}
+          className="absolute inset-0 w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-500"
+        />
+        <div className="absolute inset-0 bg-black/40 group-hover:bg-black/50 transition-colors" />
         
         {/* Ranking Number */}
         <div className="absolute top-3 left-3 w-8 h-8 bg-white/90 rounded-full flex items-center justify-center text-sm font-bold text-foreground">

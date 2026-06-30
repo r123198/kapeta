@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { Menu, X } from 'lucide-react'
 import Image from 'next/image'
+import { HEADER_LINKS } from '@/lib/constants'
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
@@ -24,15 +25,11 @@ export default function Header() {
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center gap-8">
-            <a href="#about" className="text-white hover:text-secondary transition-colors">
-              About
-            </a>
-            <a href="#pricing" className="text-white hover:text-secondary transition-colors">
-              Pricing
-            </a>
-            <a href="#login" className="text-white hover:text-secondary transition-colors">
-              Log in
-            </a>
+            {HEADER_LINKS.map((link, index) => (
+              <a key={index} href={link.href} className="text-white hover:text-secondary transition-colors">
+                {link.label}
+              </a>
+            ))}
             <a 
               href="#join" 
               className="bg-accent text-white px-4 py-2 rounded-lg hover:bg-accent/90 transition-colors font-medium"
@@ -54,27 +51,16 @@ export default function Header() {
         {isMenuOpen && (
           <div className="md:hidden bg-black/90 backdrop-blur-sm rounded-lg mt-2 p-4">
             <nav className="flex flex-col gap-4">
-              <a 
-                href="#about" 
-                className="text-white hover:text-secondary transition-colors"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                About
-              </a>
-              <a 
-                href="#pricing" 
-                className="text-white hover:text-secondary transition-colors"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Pricing
-              </a>
-              <a 
-                href="#login" 
-                className="text-white hover:text-secondary transition-colors"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Log in
-              </a>
+              {HEADER_LINKS.map((link, index) => (
+                <a 
+                  key={index}
+                  href={link.href} 
+                  className="text-white hover:text-secondary transition-colors"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  {link.label}
+                </a>
+              ))}
               <a 
                 href="#join" 
                 className="bg-accent text-white px-4 py-2 rounded-lg hover:bg-accent/90 transition-colors font-medium text-center"

@@ -1,25 +1,5 @@
-import { Wifi, Coffee, Users, MapPin, Clock, Star } from 'lucide-react'
-
-const features = [
-  {
-    icon: Wifi,
-    title: "Know Before You Go",
-    description: "Wifi speed, noise level, outlet availability, and workspace vibes. No more guessing games when choosing your work spot.",
-    highlights: ["Real-time wifi speeds", "Noise level ratings", "Power outlet maps", "Workspace photos"]
-  },
-  {
-    icon: Coffee,
-    title: "Coffee Enthusiast Details",
-    description: "Bean origin, roast type, barista insights, and brewing methods. For those who appreciate the art of coffee.",
-    highlights: ["Bean origin tracking", "Roast level details", "Barista recommendations", "Brewing methods"]
-  },
-  {
-    icon: Users,
-    title: "Remote Work Community",
-    description: "Connect with fellow remote workers, get exclusive deals, and join coffee meetups. Build your local network.",
-    highlights: ["Community meetups", "Exclusive discounts", "Networking events", "Member-only perks"]
-  }
-]
+import { MapPin, Clock, Star, Users } from 'lucide-react'
+import { FEATURES_DATA } from '@/lib/constants'
 
 export default function Features() {
   return (
@@ -37,7 +17,7 @@ export default function Features() {
 
         {/* Features grid */}
         <div className="grid md:grid-cols-3 gap-8 lg:gap-12">
-          {features.map((feature, index) => (
+          {FEATURES_DATA.map((feature, index) => (
             <div
               key={index}
               className="group relative p-8 bg-secondary/30 rounded-2xl border border-secondary hover:border-primary/20 transition-all duration-300 hover:shadow-lg"

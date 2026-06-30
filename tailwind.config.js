@@ -8,28 +8,47 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        primary: '#8B4513',      // Coffee Brown
-        secondary: '#F5F5DC',    // Warm Cream
-        accent: '#228B22',       // Forest Green
-        success: '#10B981',      // Green
-        warning: '#F59E0B',      // Amber
-        muted: '#6B7280',        // Gray
-        border: '#E5E7EB',       // Light Gray
-        background: '#FAFAFA',   // Off-white
-        foreground: '#36454F',   // Charcoal
+        primary: '#222222',
+        secondary: '#5d5f5f',
+        'border-subtle': '#E5E5E5',
+        surface: '#fdf8f8',
+        'surface-alt': '#F8F8F8',
+        'canvas-white': '#FFFFFF',
+        'on-surface': '#1c1b1b',
+        'on-surface-variant': '#444748',
+        'surface-container': '#f1edec',
+        'surface-container-lowest': '#ffffff',
+        'surface-container-low': '#f7f3f2',
+        'surface-container-high': '#ebe7e7',
+        'surface-container-highest': '#e5e2e1',
+        outline: '#747878',
+        'outline-variant': '#c4c7c7',
+        error: '#ba1a1a',
+        'error-container': '#ffdad6',
+        'on-primary': '#ffffff',
+        'on-primary-container': '#8a8989',
+        'tertiary-container': '#232221',
+      },
+      borderRadius: {
+        DEFAULT: '0px',
+        lg: '0px',
+        xl: '0px',
+        full: '0px',
+      },
+      spacing: {
+        'stack-sm': '0.5rem',
+        'stack-md': '1rem',
+        'stack-lg': '2rem',
+        'grid-margin': '2rem',
+        'grid-gutter': '1px',
+        'container-padding': '1.5rem',
       },
       fontFamily: {
-        sans: ['var(--font-inter)', 'system-ui', 'sans-serif'],
-      },
-      animation: {
-        'bounce-slow': 'bounce 2s infinite',
-        'pulse-slow': 'pulse 3s infinite',
-      },
-      backgroundImage: {
-        'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
-        'gradient-conic': 'conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))',
+        sans: ['Inter', 'sans-serif'],
+        hanken: ['Hanken Grotesk', 'sans-serif'],
+        mono: ['JetBrains Mono', 'monospace'],
       },
     },
   },
   plugins: [],
-} 
+}
