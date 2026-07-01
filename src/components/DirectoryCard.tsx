@@ -12,7 +12,22 @@ interface DirectoryCardProps {
 
 export default function DirectoryCard({ cafe, isBookmarked, onToggleBookmark }: DirectoryCardProps) {
   return (
-    <article className="bg-canvas-white flex flex-col group relative overflow-hidden border border-border-subtle">
+    <article className="bg-canvas-white flex flex-col group relative border border-border-subtle">
+      {/* Save/Bookmark Button Overlay - Moved outside Image Area so tooltip isn't clipped */}
+      <div className="absolute top-4 right-4 z-20 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+        <Tooltip content={isBookmarked ? "Remove from Bookmarks" : "Save to Bookmarks"}>
+          <button
+            onClick={(e) => onToggleBookmark(cafe.id, e)}
+            className="bg-canvas-white text-primary p-2 border border-border-subtle hover:bg-surface-alt transition-colors shadow-sm flex items-center justify-center animate-none"
+            aria-label="Save workspace"
+          >
+            <span className={`material-symbols-outlined text-[18px] ${isBookmarked ? 'material-symbols-fill text-primary' : 'text-secondary'}`}>
+              bookmark
+            </span>
+          </button>
+        </Tooltip>
+      </div>
+
       {/* Card Image Area */}
       <div className="aspect-[4/3] w-full bg-surface-container-high relative overflow-hidden border-b border-border-subtle">
         <img 
@@ -25,21 +40,6 @@ export default function DirectoryCard({ cafe, isBookmarked, onToggleBookmark }: 
         />
         <div className="absolute top-4 left-4 bg-canvas-white text-primary font-mono text-label-caps px-2 py-1 border border-border-subtle">
           {cafe.type}
-        </div>
-        
-        {/* Save/Bookmark Button Overlay */}
-        <div className="absolute top-4 right-4 z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-          <Tooltip content={isBookmarked ? "Remove from Bookmarks" : "Save to Bookmarks"}>
-            <button
-              onClick={(e) => onToggleBookmark(cafe.id, e)}
-              className="bg-canvas-white text-primary p-2 border border-border-subtle hover:bg-surface-alt transition-colors shadow-sm flex items-center justify-center"
-              aria-label="Save workspace"
-            >
-              <span className={`material-symbols-outlined text-[18px] ${isBookmarked ? 'material-symbols-fill text-primary' : 'text-secondary'}`}>
-                bookmark
-              </span>
-            </button>
-          </Tooltip>
         </div>
       </div>
 
