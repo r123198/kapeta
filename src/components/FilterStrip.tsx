@@ -26,17 +26,6 @@ export default function FilterStrip({
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 max-w-7xl mx-auto">
         {/* Left: Filter Selects */}
         <div className="flex flex-wrap items-center gap-3">
-          {/* Search input in filter strip */}
-          <div className="relative flex items-center border border-border-subtle bg-canvas-white px-3 py-1.5 focus-within:border-primary transition-colors">
-            <span className="material-symbols-outlined text-secondary text-[18px] mr-2">search</span>
-            <input 
-              className="bg-transparent border-none outline-none focus:ring-0 p-0 font-sans text-body-sm w-44 md:w-56 text-on-surface placeholder:text-outline" 
-              placeholder="Search cafes or cities..." 
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-          </div>
 
           {/* Type Filter */}
           <div className="relative">

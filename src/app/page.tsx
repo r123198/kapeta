@@ -208,13 +208,34 @@ export default function Home() {
               backgroundSize: '24px 24px' 
             }}
           />
-          <div className="z-10 flex flex-col items-center max-w-2xl">
+          <div className="z-10 flex flex-col items-center max-w-2xl w-full">
             <h1 className="font-hanken text-[48px] md:text-display-lg font-extrabold text-primary uppercase tracking-tighter mb-4 leading-none">
                ROOT
             </h1>
-            <p className="font-sans text-body-lg text-secondary max-w-lg mx-auto">
+            <p className="font-sans text-body-lg text-secondary max-w-lg mx-auto mb-8">
               A curated selection of the finest specialty coffee spaces and independent roasters worldwide.
             </p>
+
+            {/* Big Prominent Search Bar */}
+            <div className="w-full max-w-2xl relative flex items-center border-2 border-primary bg-canvas-white px-5 py-4 focus-within:ring-4 focus-within:ring-primary/10 transition-all duration-300 shadow-md">
+              <span className="material-symbols-outlined text-primary text-[28px] mr-4">search</span>
+              <input 
+                className="bg-transparent border-none outline-none focus:ring-0 p-0 font-sans text-[18px] md:text-[22px] font-semibold w-full text-on-surface placeholder:text-outline/65" 
+                placeholder="Search workspaces, cities, or roasters..." 
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+              {searchQuery && (
+                <button 
+                  onClick={() => setSearchQuery('')}
+                  className="text-secondary hover:text-primary transition-colors ml-2"
+                  aria-label="Clear search"
+                >
+                  <span className="material-symbols-outlined text-[22px]">close</span>
+                </button>
+              )}
+            </div>
           </div>
         </section>
 
@@ -231,7 +252,7 @@ export default function Home() {
         />
 
         {/* Directory Grid */}
-        <section className="px-grid-margin py-stack-lg bg-surface-alt flex-grow">
+        <section className="px-6 md:px-12 py-12 md:py-16 bg-surface-alt flex-grow">
           <div className="max-w-7xl mx-auto">
             {isLoading ? (
               <div className="text-center py-20 border border-border-subtle bg-canvas-white">
@@ -246,7 +267,7 @@ export default function Home() {
               </div>
             ) : (
               <>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-grid-gutter bg-border-subtle border border-border-subtle">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-10">
                   {filteredCafes.slice(0, visibleCount).map((cafe) => (
                     <DirectoryCard 
                       key={cafe.id}
