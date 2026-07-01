@@ -28,7 +28,7 @@ export default function DirectoryCard({ cafe, isBookmarked, onToggleBookmark }: 
         </div>
         
         {/* Save/Bookmark Button Overlay */}
-        <div className="absolute top-4 right-4 z-10">
+        <div className="absolute top-4 right-4 z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
           <Tooltip content={isBookmarked ? "Remove from Bookmarks" : "Save to Bookmarks"}>
             <button
               onClick={(e) => onToggleBookmark(cafe.id, e)}

@@ -18,7 +18,7 @@ export default function SignupPage() {
   const [agreeTerms, setAgreeTerms] = useState(false)
   
   // RBAC Roles & Shop mapping
-  const [role, setRole] = useState<'superadmin' | 'admin' | 'managers'>('managers')
+  const [role, setRole] = useState<'superadmin' | 'admin' | 'managers' | 'user'>('user')
   const [managedCafeId, setManagedCafeId] = useState('')
   const [cafesList, setCafesList] = useState<{ id: string; name: string }[]>([])
   
@@ -132,7 +132,7 @@ export default function SignupPage() {
                 id="email" 
                 name="email" 
                 placeholder="hello@example.com" 
-                required 
+                required
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -182,6 +182,7 @@ export default function SignupPage() {
                   setManagedCafeId('')
                 }}
               >
+                <option value="user">Average Joe (Regular User)</option>
                 <option value="managers">Manager (Shop Staff)</option>
                 <option value="admin">Admin (Shop Owner)</option>
                 <option value="superadmin">Super Admin (Full Access)</option>

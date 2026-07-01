@@ -1,10 +1,12 @@
 'use client'
 
 import { useState, useEffect, useRef, useCallback } from 'react'
+import Link from 'next/link'
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
 import DirectoryCard from '@/components/DirectoryCard'
 import { getCafesFromSupabase, Cafe } from '@/lib/data'
+import { supabase } from '@/lib/supabase'
 
 export default function Home() {
   const [cafesList, setCafesList] = useState<Cafe[]>([])
@@ -15,7 +17,20 @@ export default function Home() {
   const [bookmarkedIds, setBookmarkedIds] = useState<string[]>([])
   const [visibleCount, setVisibleCount] = useState(4)
 
-  // Load bookmarks and cafes on mount
+  // Auth & Bookmark Modal state
+  const [user, setUser] = useState<any>(null)
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false)
+  const [authModalTab, setAuthModalTab] = useState<'login' | 'register'>('login')
+  const [pendingBookmarkCafeId, setPendingBookmarkCafeId] = useState<string | null>(null)
+  
+  // Modal Form state
+  const [modalName, setModalName] = useState('')
+  const [modalEmail, setModalEmail] = useState('')
+  const [modalPassword, setModalPassword] = useState('')
+  const [modalError, setModalError] = useState('')
+  const [modalLoading, setModalLoading] = useState(false)
+
+  // Load cafes & session on mount
   useEffect(() => {
     async function loadData() {
       const data = await getCafesFromSupabase()
@@ -24,24 +39,165 @@ export default function Home() {
     }
     loadData()
 
-    const saved = localStorage.getItem('root_bookmarks')
-    if (saved) {
-      try {
-        setBookmarkedIds(JSON.parse(saved))
-      } catch (e) {
-        console.error('Failed to parse bookmarks', e)
+    // Get current session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        setUser(session.user)
+        loadUserBookmarks(session.user.id)
       }
+    })
+
+    // Listen to auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) {
+        setUser(session.user)
+        loadUserBookmarks(session.user.id)
+      } else {
+        setUser(null)
+        setBookmarkedIds([])
+      }
+    })
+
+    return () => {
+      subscription.unsubscribe()
     }
   }, [])
 
-  const toggleBookmark = (id: string, e: React.MouseEvent) => {
+  const loadUserBookmarks = async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('bookmarks')
+        .select('cafe_id')
+        .eq('user_id', userId)
+
+      if (!error && data) {
+        setBookmarkedIds(data.map((row: any) => row.cafe_id))
+      }
+    } catch (e) {
+      console.error('Failed to load user bookmarks', e)
+    }
+  }
+
+  const toggleBookmark = async (id: string, e: React.MouseEvent) => {
     e.preventDefault()
     e.stopPropagation()
-    const updated = bookmarkedIds.includes(id)
-      ? bookmarkedIds.filter((bId) => bId !== id)
-      : [...bookmarkedIds, id]
-    setBookmarkedIds(updated)
-    localStorage.setItem('root_bookmarks', JSON.stringify(updated))
+
+    if (!user) {
+      // User is not logged in -> trigger Auth Modal
+      setPendingBookmarkCafeId(id)
+      setAuthModalTab('login')
+      setModalError('')
+      setIsAuthModalOpen(true)
+      return
+    }
+
+    try {
+      if (bookmarkedIds.includes(id)) {
+        // Delete bookmark from database
+        const { error } = await supabase
+          .from('bookmarks')
+          .delete()
+          .eq('user_id', user.id)
+          .eq('cafe_id', id)
+
+        if (!error) {
+          setBookmarkedIds((prev) => prev.filter((bId) => bId !== id))
+        }
+      } else {
+        // Add bookmark to database
+        const { error } = await supabase
+          .from('bookmarks')
+          .insert({
+            user_id: user.id,
+            cafe_id: id,
+          })
+
+        if (!error) {
+          setBookmarkedIds((prev) => [...prev, id])
+        }
+      }
+    } catch (err) {
+      console.error('Bookmark toggle failed:', err)
+    }
+  }
+
+  // Handle Inline Auth Modal Submission
+  const handleAuthSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setModalError('')
+    setModalLoading(true)
+
+    try {
+      if (authModalTab === 'login') {
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email: modalEmail,
+          password: modalPassword,
+        })
+
+        if (error) {
+          setModalError(error.message)
+        } else if (data.user) {
+          handleAuthSuccess(data.user)
+        }
+      } else {
+        const { data, error } = await supabase.auth.signUp({
+          email: modalEmail,
+          password: modalPassword,
+          options: {
+            data: {
+              full_name: modalName,
+              role: 'user', // Default role for average joe
+            },
+          },
+        })
+
+        if (error) {
+          setModalError(error.message)
+        } else if (data.user) {
+          alert('Account successfully registered! Please log in.')
+          setAuthModalTab('login')
+        }
+      }
+    } catch (err: any) {
+      setModalError(err.message || 'Authentication error.')
+    } finally {
+      setModalLoading(false)
+    }
+  }
+
+  const handleAuthSuccess = async (loggedInUser: any) => {
+    setUser(loggedInUser)
+    setIsAuthModalOpen(false)
+    setModalEmail('')
+    setModalPassword('')
+    setModalName('')
+
+    // Fetch existing bookmarks for the newly logged-in user
+    await loadUserBookmarks(loggedInUser.id)
+
+    // Save pending bookmark if set
+    if (pendingBookmarkCafeId) {
+      const targetId = pendingBookmarkCafeId
+      setPendingBookmarkCafeId(null)
+      try {
+        const { data: exists } = await supabase
+          .from('bookmarks')
+          .select('id')
+          .eq('user_id', loggedInUser.id)
+          .eq('cafe_id', targetId)
+          .maybeSingle()
+
+        if (!exists) {
+          await supabase.from('bookmarks').insert({
+            user_id: loggedInUser.id,
+            cafe_id: targetId,
+          })
+          setBookmarkedIds((prev) => [...prev, targetId])
+        }
+      } catch (err) {
+        console.error(err)
+      }
+    }
   }
 
   // Filter cafes
@@ -106,7 +262,7 @@ export default function Home() {
           />
           <div className="z-10 flex flex-col items-center max-w-2xl">
             <h1 className="font-hanken text-[48px] md:text-display-lg font-extrabold text-primary uppercase tracking-tighter mb-4 leading-none">
-              DIRECTORY
+               ROOT
             </h1>
             <p className="font-sans text-body-lg text-secondary max-w-lg mx-auto">
               A curated selection of the finest specialty coffee spaces and independent roasters worldwide.
@@ -119,7 +275,7 @@ export default function Home() {
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 max-w-7xl mx-auto">
             {/* Left: Filter Selects */}
             <div className="flex flex-wrap items-center gap-3">
-              {/* Search input in filter strip */}
+              {/* Search input */}
               <div className="relative flex items-center border border-border-subtle bg-canvas-white px-3 py-1.5 focus-within:border-primary transition-colors">
                 <span className="material-symbols-outlined text-secondary text-[18px] mr-2">search</span>
                 <input 
@@ -208,7 +364,7 @@ export default function Home() {
                   ))}
                 </div>
 
-                {/* Infinite Scroll trigger element at the bottom */}
+                {/* Infinite Scroll trigger */}
                 {filteredCafes.length > visibleCount && (
                   <div ref={bottomRef} className="mt-12 py-6 flex justify-center">
                     <span className="font-mono text-label-caps text-secondary tracking-widest animate-pulse">
@@ -221,6 +377,121 @@ export default function Home() {
           </div>
         </section>
       </main>
+
+      {/* Auth Modal (Triggered on bookmark click if unauthenticated) */}
+      {isAuthModalOpen && (
+        <div className="fixed inset-0 z-50 bg-[#00000033] backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-canvas-white border border-primary w-full max-w-md p-8 flex flex-col shadow-lg relative animate-fade-in-up">
+            
+            {/* Close Modal */}
+            <button 
+              onClick={() => setIsAuthModalOpen(false)}
+              className="absolute top-4 right-4 text-secondary hover:text-primary transition-colors"
+            >
+              <span className="material-symbols-outlined">close</span>
+            </button>
+
+            {/* Tab Headers */}
+            <div className="flex gap-4 border-b border-border-subtle pb-3 mb-6 select-none">
+              <button 
+                onClick={() => { setAuthModalTab('login'); setModalError(''); }}
+                className={`font-mono text-label-caps pb-1 border-b-2 transition-all ${
+                  authModalTab === 'login' ? 'border-primary text-primary font-bold' : 'border-transparent text-secondary'
+                }`}
+              >
+                Sign In
+              </button>
+              <button 
+                onClick={() => { setAuthModalTab('register'); setModalError(''); }}
+                className={`font-mono text-label-caps pb-1 border-b-2 transition-all ${
+                  authModalTab === 'register' ? 'border-primary text-primary font-bold' : 'border-transparent text-secondary'
+                }`}
+              >
+                Register
+              </button>
+            </div>
+
+            {/* Header Text */}
+            <div className="mb-6">
+              <h3 className="font-hanken text-title-md font-bold text-primary">
+                {authModalTab === 'login' ? 'Authentication Required' : 'Create an Account'}
+              </h3>
+              <p className="font-sans text-body-sm text-secondary">
+                {authModalTab === 'login' 
+                  ? 'Please sign in to save your favorite coffee workspaces.' 
+                  : 'Join ROOT as an Average Joe and start bookmarking spaces!'}
+              </p>
+            </div>
+
+            {modalError && (
+              <div className="bg-error-container border border-error text-error p-3 mb-4 font-mono text-[11px] uppercase">
+                {modalError}
+              </div>
+            )}
+
+            {/* Form */}
+            <form onSubmit={handleAuthSubmit} className="space-y-4">
+              {authModalTab === 'register' && (
+                <div>
+                  <label className="block font-mono text-label-caps text-[10px] text-secondary uppercase mb-1.5" htmlFor="modal-name">
+                    Full Name
+                  </label>
+                  <input 
+                    className="archival-input" 
+                    id="modal-name" 
+                    placeholder="John Doe" 
+                    required 
+                    type="text"
+                    value={modalName}
+                    onChange={(e) => setModalName(e.target.value)}
+                  />
+                </div>
+              )}
+              
+              <div>
+                <label className="block font-mono text-label-caps text-[10px] text-secondary uppercase mb-1.5" htmlFor="modal-email">
+                  Email Address
+                </label>
+                <input 
+                  className="archival-input" 
+                  id="modal-email" 
+                  placeholder="name@domain.com" 
+                  required 
+                  type="email"
+                  value={modalEmail}
+                  onChange={(e) => setModalEmail(e.target.value)}
+                />
+              </div>
+
+              <div>
+                <label className="block font-mono text-label-caps text-[10px] text-secondary uppercase mb-1.5" htmlFor="modal-password">
+                  Password
+                </label>
+                <input 
+                  className="archival-input" 
+                  id="modal-password" 
+                  placeholder="••••••••" 
+                  required 
+                  type="password"
+                  value={modalPassword}
+                  onChange={(e) => setModalPassword(e.target.value)}
+                />
+              </div>
+
+              <div className="pt-2">
+                <button 
+                  type="submit"
+                  disabled={modalLoading}
+                  className="archival-btn-primary w-full disabled:opacity-50"
+                >
+                  {modalLoading ? 'Processing...' : authModalTab === 'login' ? 'Sign In' : 'Register Account'}
+                </button>
+              </div>
+            </form>
+
+          </div>
+        </div>
+      )}
 
       <Footer />
     </div>

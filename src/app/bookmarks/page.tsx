@@ -2,42 +2,80 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
 import { getCafesFromSupabase, Cafe } from '@/lib/data'
+import { supabase } from '@/lib/supabase'
 
 export default function BookmarksPage() {
+  const router = useRouter()
+  
   const [cafesList, setCafesList] = useState<Cafe[]>([])
   const [bookmarkedIds, setBookmarkedIds] = useState<string[]>([])
   const [searchQuery, setSearchQuery] = useState('')
   const [filterOfflineOnly, setFilterOfflineOnly] = useState(false)
   const [mounted, setMounted] = useState(false)
+  
+  const [sessionUser, setSessionUser] = useState<any>(null)
 
   // Load bookmarks & cafes on mount
   useEffect(() => {
     async function loadData() {
-      const data = await getCafesFromSupabase()
-      setCafesList(data)
-      
-      const saved = localStorage.getItem('root_bookmarks')
-      if (saved) {
-        try {
-          setBookmarkedIds(JSON.parse(saved))
-        } catch (e) {
-          console.error('Failed to parse bookmarks', e)
+      try {
+        const { data: { session } } = await supabase.auth.getSession()
+        if (!session?.user) {
+          // If not logged in, redirect to login
+          router.push('/login')
+          return
         }
+        
+        setSessionUser(session.user)
+        
+        // Fetch cafes
+        const cafes = await getCafesFromSupabase()
+        setCafesList(cafes)
+        
+        // Fetch user's bookmarks from Supabase
+        const { data: bookmarksData, error: bookmarksError } = await supabase
+          .from('bookmarks')
+          .select('cafe_id')
+          .eq('user_id', session.user.id)
+
+        if (!bookmarksError && bookmarksData) {
+          setBookmarkedIds(bookmarksData.map((row: any) => row.cafe_id))
+        }
+
+        setMounted(true)
+      } catch (err) {
+        console.error('Failed to load bookmarks page data:', err)
+        router.push('/login')
       }
-      setMounted(true)
     }
     loadData()
   }, [])
 
-  const removeBookmark = (id: string, e: React.MouseEvent) => {
+  const removeBookmark = async (id: string, e: React.MouseEvent) => {
     e.preventDefault()
     e.stopPropagation()
-    const updated = bookmarkedIds.filter((bId) => bId !== id)
-    setBookmarkedIds(updated)
-    localStorage.setItem('root_bookmarks', JSON.stringify(updated))
+    if (!sessionUser) return
+
+    try {
+      const { error } = await supabase
+        .from('bookmarks')
+        .delete()
+        .eq('user_id', sessionUser.id)
+        .eq('cafe_id', id)
+
+      if (!error) {
+        const updated = bookmarkedIds.filter((bId) => bId !== id)
+        setBookmarkedIds(updated)
+      } else {
+        console.error('Failed to delete bookmark in Supabase', error)
+      }
+    } catch (err) {
+      console.error(err)
+    }
   }
 
   // Get resolved bookmarked cafes
@@ -66,7 +104,7 @@ export default function BookmarksPage() {
       <div className="bg-surface min-h-screen text-on-surface flex flex-col font-sans">
         <Navbar />
         <div className="flex-grow flex items-center justify-center">
-          <span className="font-mono text-label-caps text-secondary">Loading bookmarks...</span>
+          <span className="font-mono text-label-caps text-secondary">Verifying session...</span>
         </div>
         <Footer />
       </div>
@@ -90,7 +128,7 @@ export default function BookmarksPage() {
               </span>
             </div>
             
-            {/* Quick stats / offline status indicator */}
+            {/* Quick stats */}
             <div className="hidden sm:flex items-center gap-2 text-secondary font-mono text-[10px] uppercase tracking-wider">
               <span className="w-2.5 h-2.5 bg-primary rounded-full"></span>
               <span>Offline Ready</span>
@@ -178,7 +216,7 @@ export default function BookmarksPage() {
                     key={cafe.id} 
                     className="bg-canvas-white px-6 py-4 flex flex-col md:flex-row md:items-center justify-between gap-4 group hover:bg-surface-alt transition-colors"
                   >
-                    {/* Left details (image, name, description) */}
+                    {/* Left details */}
                     <div className="flex items-start md:items-center gap-4 flex-grow flex-1 min-w-0">
                       {/* Image Preview */}
                       <div className="w-12 h-12 md:w-10 md:h-10 shrink-0 border border-border-subtle overflow-hidden">
@@ -201,13 +239,13 @@ export default function BookmarksPage() {
                       </div>
                     </div>
 
-                    {/* Neighborhood location */}
+                    {/* Location */}
                     <div className="w-full md:w-48 font-sans text-body-sm text-secondary md:block flex justify-between border-t md:border-t-0 pt-2 md:pt-0 border-border-subtle">
                       <span className="font-mono text-[9px] text-secondary uppercase md:hidden tracking-wider">Location</span>
                       <span>{cafe.location}</span>
                     </div>
 
-                    {/* Offline/Online Availability */}
+                    {/* Offline/Online status */}
                     <div className="w-full md:w-32 flex md:justify-end items-center gap-2 border-t md:border-t-0 pt-2 md:pt-0 border-border-subtle">
                       <span className="font-mono text-[9px] text-secondary uppercase md:hidden tracking-wider">Storage</span>
                       <div className="flex items-center gap-2 ml-auto md:ml-0">
