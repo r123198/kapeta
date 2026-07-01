@@ -46,6 +46,7 @@ export interface Cafe {
   atmosphere?: string;
   latitude?: number;
   longitude?: number;
+  promos?: string;
 }
 
 export const cafes: Cafe[] = [];
@@ -118,6 +119,7 @@ export function mapDbToCafe(row: any): Cafe {
     atmosphere: row.atmosphere || '',
     latitude: row.latitude !== null && row.latitude !== undefined ? Number(row.latitude) : undefined,
     longitude: row.longitude !== null && row.longitude !== undefined ? Number(row.longitude) : undefined,
+    promos: row.promos || '',
   }
 }
 
@@ -196,6 +198,7 @@ export function mapCafeToDb(cafe: Cafe): any {
     atmosphere: cafe.atmosphere,
     latitude: cafe.latitude !== undefined ? cafe.latitude : (getCafeDefaultLatitude(cafe.id) ?? undefined),
     longitude: cafe.longitude !== undefined ? cafe.longitude : (getCafeDefaultLongitude(cafe.id) ?? undefined),
+    promos: cafe.promos,
   }
 }
 

@@ -2,16 +2,54 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
+import { supabase } from '@/lib/supabase'
 
 export default function LoginPage() {
+  const router = useRouter()
+  
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  
+  const [errorMsg, setErrorMsg] = useState('')
+  const [loading, setLoading] = useState(false)
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    alert(`Logged in with ${email} (simulated)`)
+    setErrorMsg('')
+    setLoading(true)
+
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      })
+
+      if (error) {
+        setErrorMsg(error.message)
+      } else if (data.user) {
+        // Query profile role
+        const { data: profile, error: profileError } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', data.user.id)
+          .single()
+
+        const activeRole = profile?.role || data.user.user_metadata?.role || 'managers'
+
+        if (activeRole === 'superadmin' || activeRole === 'admin') {
+          router.push('/admin')
+        } else {
+          router.push('/')
+        }
+      }
+    } catch (err: any) {
+      setErrorMsg(err.message || 'An unexpected error occurred.')
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -29,6 +67,12 @@ export default function LoginPage() {
                 Access your curated directory.
               </p>
             </div>
+            
+            {errorMsg && (
+              <div className="bg-error-container border border-error text-error p-3 mb-6 font-mono text-[12px] uppercase">
+                {errorMsg}
+              </div>
+            )}
             
             <form onSubmit={handleSubmit} className="space-y-6">
               <div>
@@ -69,8 +113,12 @@ export default function LoginPage() {
               </div>
 
               <div className="pt-4">
-                <button className="archival-btn-primary mb-4" type="submit">
-                  Sign In
+                <button 
+                  className="archival-btn-primary mb-4 disabled:opacity-50" 
+                  type="submit"
+                  disabled={loading}
+                >
+                  {loading ? 'Signing In...' : 'Sign In'}
                   <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
                 </button>
                 

@@ -1,20 +1,85 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
+import { supabase } from '@/lib/supabase'
+import { getCafesFromSupabase } from '@/lib/data'
 
 export default function SignupPage() {
+  const router = useRouter()
+  
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [agreeTerms, setAgreeTerms] = useState(false)
+  
+  // RBAC Roles & Shop mapping
+  const [role, setRole] = useState<'superadmin' | 'admin' | 'managers'>('managers')
+  const [managedCafeId, setManagedCafeId] = useState('')
+  const [cafesList, setCafesList] = useState<{ id: string; name: string }[]>([])
+  
+  // Status states
+  const [errorMsg, setErrorMsg] = useState('')
+  const [loading, setLoading] = useState(false)
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // Fetch coffee shops on mount
+  useEffect(() => {
+    async function loadCafes() {
+      try {
+        const data = await getCafesFromSupabase()
+        setCafesList(data.map(c => ({ id: c.id, name: c.name })))
+      } catch (err) {
+        console.error('Failed to load cafes', err)
+      }
+    }
+    loadCafes()
+  }, [])
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    alert(`Registered ${name} (${email}) (simulated)`)
+    setErrorMsg('')
+    setLoading(true)
+
+    if (!agreeTerms) {
+      setErrorMsg('You must agree to the Terms of Service and Privacy Policy.')
+      setLoading(false)
+      return
+    }
+
+    if ((role === 'admin' || role === 'managers') && !managedCafeId) {
+      setErrorMsg('Please select an assigned coffee shop.')
+      setLoading(false)
+      return
+    }
+
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            full_name: name,
+            role,
+            managed_cafe_id: role === 'superadmin' ? null : managedCafeId
+          }
+        }
+      })
+
+      if (error) {
+        setErrorMsg(error.message)
+      } else {
+        alert('Account successfully created! Please log in.')
+        router.push('/login')
+      }
+    } catch (err: any) {
+      setErrorMsg(err.message || 'An unexpected error occurred.')
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -34,6 +99,12 @@ export default function SignupPage() {
             </p>
           </div>
           
+          {errorMsg && (
+            <div className="bg-error-container border border-error text-error p-3 font-mono text-[12px] uppercase">
+              {errorMsg}
+            </div>
+          )}
+
           {/* Form */}
           <form onSubmit={handleSubmit} className="flex flex-col gap-5 mt-4">
             <div className="flex flex-col gap-1.5 group">
@@ -41,7 +112,7 @@ export default function SignupPage() {
                 Full Name
               </label>
               <input 
-                className="w-full bg-canvas-white border border-border-subtle px-4 py-3 font-sans text-body-sm text-primary placeholder:text-secondary focus:outline-none focus:border-primary-container focus:ring-0 transition-colors rounded-none appearance-none" 
+                className="w-full bg-canvas-white border border-border-subtle px-4 py-3 font-sans text-body-sm text-primary placeholder:text-secondary focus:outline-none focus:border-primary focus:ring-0 transition-colors rounded-none appearance-none" 
                 id="name" 
                 name="name" 
                 placeholder="John Doe" 
@@ -57,7 +128,7 @@ export default function SignupPage() {
                 Email Address
               </label>
               <input 
-                className="w-full bg-canvas-white border border-border-subtle px-4 py-3 font-sans text-body-sm text-primary placeholder:text-secondary focus:outline-none focus:border-primary-container focus:ring-0 transition-colors rounded-none appearance-none" 
+                className="w-full bg-canvas-white border border-border-subtle px-4 py-3 font-sans text-body-sm text-primary placeholder:text-secondary focus:outline-none focus:border-primary focus:ring-0 transition-colors rounded-none appearance-none" 
                 id="email" 
                 name="email" 
                 placeholder="hello@example.com" 
@@ -74,7 +145,7 @@ export default function SignupPage() {
               </label>
               <div className="relative">
                 <input 
-                  className="w-full bg-canvas-white border border-border-subtle px-4 py-3 font-sans text-body-sm text-primary placeholder:text-secondary focus:outline-none focus:border-primary-container focus:ring-0 transition-colors rounded-none appearance-none pr-10" 
+                  className="w-full bg-canvas-white border border-border-subtle px-4 py-3 font-sans text-body-sm text-primary placeholder:text-secondary focus:outline-none focus:border-primary focus:ring-0 transition-colors rounded-none appearance-none pr-10" 
                   id="password" 
                   name="password" 
                   placeholder="••••••••" 
@@ -95,10 +166,53 @@ export default function SignupPage() {
                 </button>
               </div>
             </div>
+
+            {/* Role dropdown */}
+            <div className="flex flex-col gap-1.5 group">
+              <label className="font-mono text-label-caps text-secondary uppercase tracking-widest group-focus-within:text-primary transition-colors" htmlFor="role">
+                Account Role
+              </label>
+              <select
+                id="role"
+                name="role"
+                className="w-full bg-canvas-white border border-border-subtle px-4 py-3 font-sans text-body-sm text-primary focus:outline-none focus:border-primary focus:ring-0 transition-colors rounded-none cursor-pointer"
+                value={role}
+                onChange={(e) => {
+                  setRole(e.target.value as any)
+                  setManagedCafeId('')
+                }}
+              >
+                <option value="managers">Manager (Shop Staff)</option>
+                <option value="admin">Admin (Shop Owner)</option>
+                <option value="superadmin">Super Admin (Full Access)</option>
+              </select>
+            </div>
+
+            {/* Assigned Cafe dropdown (only for admin & managers) */}
+            {(role === 'admin' || role === 'managers') && (
+              <div className="flex flex-col gap-1.5 group animate-fade-in-up">
+                <label className="font-mono text-label-caps text-secondary uppercase tracking-widest group-focus-within:text-primary transition-colors" htmlFor="managed-cafe">
+                  Assigned Coffee Shop
+                </label>
+                <select
+                  id="managed-cafe"
+                  name="managed_cafe"
+                  required
+                  className="w-full bg-canvas-white border border-border-subtle px-4 py-3 font-sans text-body-sm text-primary focus:outline-none focus:border-primary focus:ring-0 transition-colors rounded-none cursor-pointer"
+                  value={managedCafeId}
+                  onChange={(e) => setManagedCafeId(e.target.value)}
+                >
+                  <option value="">Select a Coffee Shop...</option>
+                  {cafesList.map(c => (
+                    <option key={c.id} value={c.id}>{c.name}</option>
+                  ))}
+                </select>
+              </div>
+            )}
             
             <div className="flex items-start gap-3 mt-2">
               <input 
-                className="mt-1 w-4 h-4 bg-canvas-white border border-border-subtle checked:bg-primary-container checked:border-primary-container focus:ring-0 rounded-none cursor-pointer" 
+                className="mt-1 w-4 h-4 bg-canvas-white border border-border-subtle checked:bg-primary checked:border-primary focus:ring-0 rounded-none cursor-pointer text-primary" 
                 id="terms" 
                 name="terms" 
                 required 
@@ -112,10 +226,11 @@ export default function SignupPage() {
             </div>
             
             <button 
-              className="mt-4 w-full bg-primary text-canvas-white font-mono text-label-caps uppercase tracking-widest py-3.5 hover:bg-tertiary-container transition-colors duration-200 border border-primary" 
+              className="mt-4 w-full bg-primary text-canvas-white font-mono text-label-caps uppercase tracking-widest py-3.5 hover:bg-tertiary-container transition-colors duration-200 border border-primary disabled:opacity-50" 
               type="submit"
+              disabled={loading}
             >
-              Create Account
+              {loading ? 'Creating...' : 'Create Account'}
             </button>
           </form>
           

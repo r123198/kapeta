@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
 import { 
@@ -8,20 +9,27 @@ import {
   insertCafeToSupabase, 
   updateCafeInSupabase, 
   deleteCafeFromSupabase, 
-  seedSupabaseWithMockData, 
   Cafe 
 } from '@/lib/data'
 import { supabase } from '@/lib/supabase'
 
 export default function AdminPage() {
+  const router = useRouter()
+  
+  // Auth state
+  const [profileRole, setProfileRole] = useState<string | null>(null)
+  const [managedCafeId, setManagedCafeId] = useState<string | null>(null)
+  const [userEmail, setUserEmail] = useState<string | null>(null)
+  const [authLoading, setAuthLoading] = useState(true)
+
+  // Cafes data state
   const [cafesList, setCafesList] = useState<Cafe[]>([])
   const [subscriberCount, setSubscriberCount] = useState<number>(0)
   const [isLoading, setIsLoading] = useState(true)
   const [dbStatus, setDbStatus] = useState<'Checking' | 'Connected' | 'Error'>('Checking')
   const [dbError, setDbError] = useState<string>('')
   
-  // Seeding state
-  const [seeding, setSeeding] = useState(false)
+
 
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -64,9 +72,54 @@ export default function AdminPage() {
   const [formDistance, setFormDistance] = useState('1.0 MI')
   const [formTopFeature, setFormTopFeature] = useState('')
   const [formAtmosphere, setFormAtmosphere] = useState('')
+  const [formPromos, setFormPromos] = useState('')
+
+  // Check auth and role
+  useEffect(() => {
+    async function checkAuth() {
+      try {
+        const { data: { session } } = await supabase.auth.getSession()
+        if (!session?.user) {
+          router.push('/login')
+          return
+        }
+        setUserEmail(session.user.email || '')
+        
+        // Fetch user profile from database
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('role, managed_cafe_id')
+          .eq('id', session.user.id)
+          .single()
+
+        const activeRole = profile?.role || session.user.user_metadata?.role || 'managers'
+        const activeManagedCafeId = profile?.managed_cafe_id || session.user.user_metadata?.managed_cafe_id || null
+
+        setProfileRole(activeRole)
+        setManagedCafeId(activeManagedCafeId)
+
+        if (activeRole !== 'superadmin' && activeRole !== 'admin') {
+          // Block managers or standard users
+          alert('Access Denied. You do not have permission to view the Admin page.')
+          router.push('/')
+          return
+        }
+        
+        setAuthLoading(false)
+        await loadData(activeRole, activeManagedCafeId)
+      } catch (err) {
+        console.error('Auth verification failed:', err)
+        router.push('/login')
+      }
+    }
+    checkAuth()
+  }, [])
 
   // Load dashboard data
-  const loadData = async () => {
+  const loadData = async (activeRole?: string, activeManagedCafeId?: string | null) => {
+    const currentRole = activeRole !== undefined ? activeRole : profileRole
+    const currentManagedCafeId = activeManagedCafeId !== undefined ? activeManagedCafeId : managedCafeId
+
     setIsLoading(true)
     try {
       // Test connection
@@ -82,7 +135,14 @@ export default function AdminPage() {
 
       // Load cafes
       const list = await getCafesFromSupabase()
-      setCafesList(list)
+      
+      // If admin, scope to only their assigned shop
+      if (currentRole === 'admin' && currentManagedCafeId) {
+        const filtered = list.filter(c => c.id === currentManagedCafeId)
+        setCafesList(filtered)
+      } else {
+        setCafesList(list)
+      }
 
       // Load email subscribers count
       const { count, error: subError } = await supabase
@@ -101,10 +161,6 @@ export default function AdminPage() {
     }
   }
 
-  useEffect(() => {
-    loadData()
-  }, [])
-
   // Calculate Metrics
   const totalCafes = cafesList.length
   const openCafesCount = cafesList.filter(c => c.status === 'Open').length
@@ -116,6 +172,7 @@ export default function AdminPage() {
 
   // Open modal for adding
   const handleAddClick = () => {
+    if (profileRole !== 'superadmin') return
     setEditingCafe(null)
     setFormId('')
     setFormName('')
@@ -145,6 +202,7 @@ export default function AdminPage() {
     setFormDistance('1.0 MI')
     setFormTopFeature('High-Speed WiFi & Outlets')
     setFormAtmosphere('Cozy, Productive, Modern')
+    setFormPromos('')
     setIsModalOpen(true)
   }
 
@@ -179,6 +237,7 @@ export default function AdminPage() {
     setFormDistance(cafe.distance || '')
     setFormTopFeature(cafe.topFeature || '')
     setFormAtmosphere(cafe.atmosphere || '')
+    setFormPromos(cafe.promos || '')
     setIsModalOpen(true)
   }
 
@@ -231,13 +290,18 @@ export default function AdminPage() {
       hours: formHours.trim(),
       distance: formDistance.trim(),
       topFeature: formTopFeature.trim(),
-      atmosphere: formAtmosphere.trim()
+      atmosphere: formAtmosphere.trim(),
+      promos: formPromos.trim()
     }
 
     let res
     if (editingCafe) {
       res = await updateCafeInSupabase(editingCafe.id, cafePayload)
     } else {
+      if (profileRole !== 'superadmin') {
+        alert('Action unauthorized.')
+        return
+      }
       res = await insertCafeToSupabase(cafePayload)
     }
 
@@ -252,6 +316,7 @@ export default function AdminPage() {
 
   // Delete cafe
   const handleDeleteClick = async (id: string, name: string) => {
+    if (profileRole !== 'superadmin') return
     if (confirm(`Are you sure you want to delete "${name}" from the database?`)) {
       const res = await deleteCafeFromSupabase(id)
       if (res.success) {
@@ -263,19 +328,18 @@ export default function AdminPage() {
     }
   }
 
-  // Seed Mock Data
-  const handleSeedClick = async () => {
-    if (confirm('This will RESET the database cafes table and insert the 7 default cafes. Continue?')) {
-      setSeeding(true)
-      const res = await seedSupabaseWithMockData()
-      setSeeding(false)
-      if (res.success) {
-        loadData()
-        alert(`Successfully seeded database! Added ${res.count} cafes.`)
-      } else {
-        alert(`Seeding failed: ${res.error?.message || 'Check SQL console / connection'}`)
-      }
-    }
+
+
+  if (authLoading) {
+    return (
+      <div className="bg-surface min-h-screen text-on-surface flex flex-col font-sans">
+        <Navbar />
+        <div className="flex-grow flex items-center justify-center">
+          <span className="font-mono text-label-caps text-secondary">Checking Authorization...</span>
+        </div>
+        <Footer />
+      </div>
+    )
   }
 
   return (
@@ -290,7 +354,7 @@ export default function AdminPage() {
               ADMIN CONTROL PANEL
             </h1>
             <p className="font-mono text-label-caps text-secondary">
-              Database CRUD panel, seed tools & analytics insights
+              Logged in as: <span className="text-primary font-bold">{userEmail}</span> ({profileRole})
             </p>
           </div>
 
@@ -305,13 +369,6 @@ export default function AdminPage() {
               </span>
             </div>
 
-            <button 
-              onClick={handleSeedClick}
-              disabled={seeding}
-              className="font-mono text-label-caps border border-primary px-4 py-2 text-primary hover:bg-primary hover:text-on-primary transition-colors disabled:opacity-50"
-            >
-              {seeding ? 'Seeding...' : 'Seed Mock Data'}
-            </button>
           </div>
         </section>
 
@@ -375,13 +432,15 @@ export default function AdminPage() {
           <h2 className="font-hanken text-title-md md:text-title-lg font-bold text-primary">
             WORKSPACE LIST
           </h2>
-          <button 
-            onClick={handleAddClick}
-            className="font-mono text-label-caps bg-primary text-on-primary px-4 py-2 hover:bg-tertiary-container transition-colors flex items-center gap-2"
-          >
-            <span className="material-symbols-outlined text-[16px]">add</span>
-            Add Workspace
-          </button>
+          {profileRole === 'superadmin' && (
+            <button 
+              onClick={handleAddClick}
+              className="font-mono text-label-caps bg-primary text-on-primary px-4 py-2 hover:bg-tertiary-container transition-colors flex items-center gap-2"
+            >
+              <span className="material-symbols-outlined text-[16px]">add</span>
+              Add Workspace
+            </button>
+          )}
         </section>
 
         {/* CRUD Table */}
@@ -396,12 +455,6 @@ export default function AdminPage() {
                 database
               </span>
               <p className="font-mono text-label-caps text-secondary mb-4">No workspace records found in database.</p>
-              <button 
-                onClick={handleSeedClick}
-                className="font-mono text-label-caps border border-primary px-5 py-2 text-primary hover:bg-primary hover:text-on-primary transition-colors"
-              >
-                Seed Default Workspaces
-              </button>
             </div>
           ) : (
             <table className="w-full text-left font-sans border-collapse">
@@ -463,13 +516,15 @@ export default function AdminPage() {
                           <span className="material-symbols-outlined text-[16px]">edit</span>
                           Edit
                         </button>
-                        <button 
-                          onClick={() => handleDeleteClick(cafe.id, cafe.name)}
-                          className="text-secondary hover:text-error transition-colors flex items-center gap-1 font-mono text-[11px] uppercase"
-                        >
-                          <span className="material-symbols-outlined text-[16px]">delete</span>
-                          Delete
-                        </button>
+                        {profileRole === 'superadmin' && (
+                          <button 
+                            onClick={() => handleDeleteClick(cafe.id, cafe.name)}
+                            className="text-secondary hover:text-error transition-colors flex items-center gap-1 font-mono text-[11px] uppercase"
+                          >
+                            <span className="material-symbols-outlined text-[16px]">delete</span>
+                            Delete
+                          </button>
+                        )}
                       </div>
                     </td>
                   </tr>
@@ -517,7 +572,7 @@ export default function AdminPage() {
                       id="cafe-id"
                       placeholder="e.g. sey-coffee"
                       required
-                      disabled={!!editingCafe}
+                      disabled={!!editingCafe || profileRole !== 'superadmin'}
                       type="text"
                       value={formId}
                       onChange={(e) => setFormId(e.target.value)}
@@ -580,12 +635,13 @@ export default function AdminPage() {
                   </div>
                   <div>
                     <label className="block font-mono text-label-caps text-[10px] text-primary uppercase mb-1.5" htmlFor="cafe-image">
-                      Hero Image URL
+                      Hero Image URL *
                     </label>
                     <input 
-                      className="archival-input text-primary"
+                      className="archival-input text-primary disabled:bg-surface-alt disabled:text-secondary"
                       id="cafe-image"
                       placeholder="https://..."
+                      disabled={profileRole !== 'superadmin'}
                       type="text"
                       value={formImage}
                       onChange={(e) => setFormImage(e.target.value)}
@@ -913,14 +969,28 @@ export default function AdminPage() {
                     />
                   </div>
                   <div className="md:col-span-2">
+                    <label className="block font-mono text-label-caps text-[10px] text-primary uppercase mb-1.5" htmlFor="meta-promos">
+                      Active Promos / Specials
+                    </label>
+                    <input 
+                      className="archival-input text-primary"
+                      id="meta-promos"
+                      placeholder="e.g. 10% off for remote workers, Free cookie with every espresso on Tuesdays"
+                      type="text"
+                      value={formPromos}
+                      onChange={(e) => setFormPromos(e.target.value)}
+                    />
+                  </div>
+                  <div className="md:col-span-2">
                     <label className="block font-mono text-label-caps text-[10px] text-primary uppercase mb-1.5" htmlFor="meta-review">
                       Curated Editorial Review (2-3 sentences) *
                     </label>
                     <textarea 
-                      className="archival-input min-h-24 resize-y text-primary"
+                      className="archival-input min-h-24 resize-y text-primary disabled:bg-surface-alt disabled:text-secondary"
                       id="meta-review"
                       placeholder="Write your editorial review here..."
                       required
+                      disabled={profileRole !== 'superadmin'}
                       value={formReview}
                       onChange={(e) => setFormReview(e.target.value)}
                     />
