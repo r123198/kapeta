@@ -29,7 +29,7 @@ export default function Hero({ userCount }: HeroProps) {
             {/* Main Headline */}
             <div>
               <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white leading-tight mb-4 hero-text">
-                kapeta! and discover coffee together
+                ROOT and discover coffee together
               </h1>
               <p className="text-xl text-white/90 italic hero-text">
                 "Let's get coffee!"
@@ -80,7 +80,7 @@ export default function Hero({ userCount }: HeroProps) {
               </div>
               <div className="flex items-center gap-3 text-white/90 hero-text">
                 <MessageCircle className="w-5 h-5 text-accent flex-shrink-0" />
-                <span>Join kapeta! Discord chat and find your coffee community</span>
+                <span>Join ROOT Discord chat and find your coffee community</span>
               </div>
             </div>
 

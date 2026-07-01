@@ -10,7 +10,7 @@ export default function TestimonialsSection() {
             What the Community Says
           </h2>
           <p className="text-lg text-muted max-w-2xl mx-auto">
-            Join thousands of coffee lovers and remote workers who trust kapeta! to find their perfect workspace
+            Join thousands of coffee lovers and remote workers who trust ROOT to find their perfect workspace
           </p>
         </div>
 

@@ -2,15 +2,15 @@ import { Wifi, Coffee, Users, Star, Sparkles, Gift } from 'lucide-react'
 
 export const TESTIMONIALS = [
   {
-    quote: "kapeta! helps me find coffee shops that are perfect for remote work in Iligan, based on factors like wifi speed, noise level, and coffee quality",
+    quote: "ROOT helps me find coffee shops that are perfect for remote work in Iligan, based on factors like wifi speed, noise level, and coffee quality",
     publication: "Local News Iligan"
   },
   {
-    quote: "The ratings of kapeta!'s cafes are constantly updated in real-time based on user input from the local coffee community",
+    quote: "The ratings of ROOT's cafes are constantly updated in real-time based on user input from the local coffee community",
     publication: "Mindanao Daily"
   },
   {
-    quote: "kapeta! is a local aggregator for coffee destinations, ranking wifi, coffee beans, and work environment",
+    quote: "ROOT is a local aggregator for coffee destinations, ranking wifi, coffee beans, and work environment",
     publication: "TechNews PH"
   }
 ]

@@ -46,7 +46,7 @@ export default function ProblemSolution() {
             The Coffee Shop Struggle is Real
           </h2>
           <p className="text-xl text-muted max-w-2xl mx-auto">
-            We've been there. That's why we built kapeta! to solve the real problems remote workers face.
+            We've been there. That's why we built ROOT to solve the real problems remote workers face.
           </p>
         </div>
 
@@ -90,7 +90,7 @@ export default function ProblemSolution() {
                 <Check className="w-6 h-6 text-success" />
                 Our Solution
               </h3>
-              <p className="text-muted">How kapeta! makes coffee shop work better</p>
+              <p className="text-muted">How ROOT makes coffee shop work better</p>
             </div>
 
             <div className="space-y-6">

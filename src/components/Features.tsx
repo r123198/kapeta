@@ -8,7 +8,7 @@ export default function Features() {
         {/* Section header */}
         <div className="text-center mb-16">
           <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">
-            Why Choose <span className="text-primary">kapeta!</span>?
+            Why Choose <span className="text-primary">ROOT</span>?
           </h2>
           <p className="text-xl text-muted max-w-2xl mx-auto">
             We're not just another coffee directory. We're your local coffee community.

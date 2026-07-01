@@ -24,7 +24,7 @@ export default function StickyBottomBanner() {
               href="#join"
               className="bg-white text-accent px-4 py-2 rounded-lg font-medium hover:bg-white/90 transition-colors text-sm sm:text-base"
             >
-              Join kapeta! →
+              Join ROOT! →
             </a>
             <button
               onClick={() => setIsVisible(false)}

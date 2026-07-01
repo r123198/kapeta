@@ -57,7 +57,7 @@ export default function EmailForm({ source = 'landing_page', className = '', var
     return (
       <div className={`bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg p-6 text-center ${className}`}>
         <CheckCircle className="w-8 h-8 text-green-400 mx-auto mb-3" />
-        <h3 className="text-lg font-semibold text-white mb-2">Welcome to kapeta!</h3>
+        <h3 className="text-lg font-semibold text-white mb-2">Welcome to ROOT!</h3>
         <p className="text-white/90">{message}</p>
         <button
           onClick={() => setStatus('idle')}
@@ -109,7 +109,7 @@ export default function EmailForm({ source = 'landing_page', className = '', var
           </>
         ) : (
           <>
-            Join kapeta! →
+            Join ROOT! →
           </>
         )}
       </button>

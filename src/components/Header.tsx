@@ -16,7 +16,7 @@ export default function Header() {
           <div className="flex items-center">
             <Image
               src="/logo.svg"
-              alt="kapeta! - Let's get coffee!"
+              alt="ROOT - Let's get coffee!"
               width={120}
               height={40}
               className="h-8 w-auto"
@@ -34,7 +34,7 @@ export default function Header() {
               href="#join" 
               className="bg-accent text-white px-4 py-2 rounded-lg hover:bg-accent/90 transition-colors font-medium"
             >
-              Join kapeta! →
+              Join ROOT! →
             </a>
           </nav>
 
@@ -66,7 +66,7 @@ export default function Header() {
                 className="bg-accent text-white px-4 py-2 rounded-lg hover:bg-accent/90 transition-colors font-medium text-center"
                 onClick={() => setIsMenuOpen(false)}
               >
-                Join kapeta! →
+                Join ROOT! →
               </a>
             </nav>
           </div>

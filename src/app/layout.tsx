@@ -8,19 +8,19 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "kapeta! - Discover Iligan's Best Coffee Shops",
+  title: "ROOT - Discover Iligan's Best Coffee Shops",
   description: "Let's get coffee! Know the beans, know the vibe, know before you go. Your local guide to work-friendly cafes in Iligan City.",
-  keywords: "coffee shops, Iligan City, remote work, cafes, coffee directory, kapeta",
-  authors: [{ name: "kapeta!" }],
+  keywords: "coffee shops, Iligan City, remote work, cafes, coffee directory, ROOT",
+  authors: [{ name: "ROOT" }],
   openGraph: {
-    title: "kapeta! - Discover Iligan's Best Coffee Shops",
+    title: "ROOT - Discover Iligan's Best Coffee Shops",
     description: "Let's get coffee! Know the beans, know the vibe, know before you go.",
     type: "website",
     locale: "en_US",
   },
   twitter: {
     card: "summary_large_image",
-    title: "kapeta! - Discover Iligan's Best Coffee Shops",
+    title: "ROOT - Discover Iligan's Best Coffee Shops",
     description: "Let's get coffee! Know the beans, know the vibe, know before you go.",
   },
 };

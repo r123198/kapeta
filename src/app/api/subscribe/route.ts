@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       { 
         success: true, 
-        message: 'Welcome to kapeta! We\'ll notify you when we launch.',
+        message: 'Welcome to ROOT! We\'ll notify you when we launch.',
         data 
       },
       { status: 201 }
