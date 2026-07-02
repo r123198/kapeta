@@ -3,8 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import Navbar from '@/components/Navbar'
-import Footer from '@/components/Footer'
+import PageShell from '@/components/PageShell'
 import { supabase } from '@/lib/supabase'
 
 export default function LoginPage() {
@@ -12,7 +11,6 @@ export default function LoginPage() {
   
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  
   const [errorMsg, setErrorMsg] = useState('')
   const [loading, setLoading] = useState(false)
 
@@ -31,7 +29,7 @@ export default function LoginPage() {
         setErrorMsg(error.message)
       } else if (data.user) {
         // Query profile role
-        const { data: profile, error: profileError } = await supabase
+        const { data: profile } = await supabase
           .from('profiles')
           .select('role')
           .eq('id', data.user.id)
@@ -53,9 +51,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="bg-surface-alt min-h-screen text-on-surface flex flex-col font-sans">
-      <Navbar />
-
+    <PageShell className="bg-surface-alt">
       <div className="flex flex-1 w-full max-w-[1440px] mx-auto">
         <main className="flex-1 flex flex-col items-center justify-center p-grid-margin w-full">
           <div className="w-full max-w-md bg-canvas-white archival-border p-8 md:p-12">
@@ -133,8 +129,6 @@ export default function LoginPage() {
           </div>
         </main>
       </div>
-
-      <Footer />
-    </div>
+    </PageShell>
   )
 }

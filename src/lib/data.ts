@@ -333,3 +333,63 @@ export async function deleteCafeFromSupabase(id: string): Promise<{ success: boo
   }
 }
 
+// Socials / Contact fallback data
+export interface CafeSocials {
+  phone: string
+  email: string
+  instagram: string
+  facebook: string
+}
+
+export function getSocials(cafeId: string): CafeSocials {
+  const fallbacks: Record<string, CafeSocials> = {
+    'sey-coffee': {
+      phone: '+1 (347) 878-8400',
+      email: 'info@seycoffee.com',
+      instagram: '@seycoffee',
+      facebook: 'facebook.com/seycoffee'
+    },
+    'onyx-coffee-lab': {
+      phone: '+1 (479) 715-6492',
+      email: 'info@onyxcoffeelab.com',
+      instagram: '@onyxcoffeelab',
+      facebook: 'facebook.com/onyxcoffeelab'
+    },
+    'kurasu': {
+      phone: '+81 75-222-5077',
+      email: 'co-op@kurasu.kyoto',
+      instagram: '@kurasu.kyoto',
+      facebook: 'facebook.com/kurasukyoto'
+    },
+    'la-cabra': {
+      phone: '+45 88 44 14 00',
+      email: 'webshop@lacabra.dk',
+      instagram: '@lacabra.coffee',
+      facebook: 'facebook.com/lacabracoffee'
+    },
+    'ozone-coffee-roasters': {
+      phone: '+44 20 7490 9710',
+      email: 'london@ozonecoffee.co.uk',
+      instagram: '@ozonecoffeeroasters',
+      facebook: 'facebook.com/ozonecoffeeroasters'
+    },
+    'prufrock-coffee': {
+      phone: '+44 20 7242 7467',
+      email: 'info@prufrockcoffee.com',
+      instagram: '@prufrockcoffee',
+      facebook: 'facebook.com/prufrockcoffee'
+    },
+    'watchhouse': {
+      phone: '+44 20 7407 6599',
+      email: 'bermondsey@watchhouse.com',
+      instagram: '@watchhouse',
+      facebook: 'facebook.com/watchhouse'
+    }
+  }
+  return fallbacks[cafeId] || {
+    phone: '+63 917 123 4567',
+    email: `hello@${cafeId}.com`,
+    instagram: `@${cafeId}`,
+    facebook: `facebook.com/${cafeId}`
+  }
+}

@@ -1,15 +1,15 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import Navbar from '@/components/Navbar'
-import Footer from '@/components/Footer'
+import PageShell from '@/components/PageShell'
 import { supabase } from '@/lib/supabase'
-import { getCafesFromSupabase } from '@/lib/data'
+import { useCafes } from '@/hooks/useCafes'
 
 export default function SignupPage() {
   const router = useRouter()
+  const { cafesList } = useCafes()
   
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
@@ -20,24 +20,10 @@ export default function SignupPage() {
   // RBAC Roles & Shop mapping
   const [role, setRole] = useState<'superadmin' | 'admin' | 'managers' | 'user'>('user')
   const [managedCafeId, setManagedCafeId] = useState('')
-  const [cafesList, setCafesList] = useState<{ id: string; name: string }[]>([])
   
   // Status states
   const [errorMsg, setErrorMsg] = useState('')
   const [loading, setLoading] = useState(false)
-
-  // Fetch coffee shops on mount
-  useEffect(() => {
-    async function loadCafes() {
-      try {
-        const data = await getCafesFromSupabase()
-        setCafesList(data.map(c => ({ id: c.id, name: c.name })))
-      } catch (err) {
-        console.error('Failed to load cafes', err)
-      }
-    }
-    loadCafes()
-  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -83,9 +69,7 @@ export default function SignupPage() {
   }
 
   return (
-    <div className="bg-canvas-white text-primary min-h-screen font-sans flex flex-col antialiased selection:bg-primary-container selection:text-canvas-white">
-      <Navbar />
-
+    <PageShell className="bg-canvas-white text-primary antialiased selection:bg-primary-container selection:text-canvas-white">
       {/* Main Canvas */}
       <main className="flex-grow flex items-center justify-center p-grid-margin pt-24 pb-20 relative z-0">
         <div className="w-full max-w-md bg-canvas-white border border-border-subtle p-8 flex flex-col gap-stack-lg shadow-[0_0_0_1px_rgba(229,229,229,1)]">
@@ -268,8 +252,6 @@ export default function SignupPage() {
           </div>
         </div>
       </main>
-
-      <Footer />
-    </div>
+    </PageShell>
   )
 }

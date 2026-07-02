@@ -1,149 +1,57 @@
 'use client'
 
 import { useState, useEffect, useRef, useCallback } from 'react'
-import Link from 'next/link'
-import Navbar from '@/components/Navbar'
-import Footer from '@/components/Footer'
+import PageShell from '@/components/PageShell'
 import DirectoryCard from '@/components/DirectoryCard'
 import FilterStrip from '@/components/FilterStrip'
+import HeroSection from '@/components/HeroSection'
 import AuthModal from '@/components/AuthModal'
-import { getCafesFromSupabase, Cafe } from '@/lib/data'
-import { supabase } from '@/lib/supabase'
+import { useAuth } from '@/hooks/useAuth'
+import { useBookmarks } from '@/hooks/useBookmarks'
+import { useCafes } from '@/hooks/useCafes'
 
 export default function Home() {
-  const [cafesList, setCafesList] = useState<Cafe[]>([])
-  const [isLoading, setIsLoading] = useState(true)
+  const { user } = useAuth()
+  const { cafesList, isLoading } = useCafes()
+  const { bookmarkedIds, loadBookmarks, toggleBookmark, isBookmarked, addBookmarkIfMissing } = useBookmarks(user?.id || null)
+
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedType, setSelectedType] = useState('ALL')
   const [selectedCountry, setSelectedCountry] = useState('ALL')
-  const [bookmarkedIds, setBookmarkedIds] = useState<string[]>([])
   const [visibleCount, setVisibleCount] = useState(4)
 
-  // Auth & Bookmark Modal state
-  const [user, setUser] = useState<any>(null)
+  // Auth Modal state
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false)
   const [authModalTab, setAuthModalTab] = useState<'login' | 'register'>('login')
   const [pendingBookmarkCafeId, setPendingBookmarkCafeId] = useState<string | null>(null)
 
-  // Load cafes & session on mount
+  // Load bookmarks when user changes
   useEffect(() => {
-    async function loadData() {
-      const data = await getCafesFromSupabase()
-      setCafesList(data)
-      setIsLoading(false)
-    }
-    loadData()
+    if (user) loadBookmarks(user.id)
+  }, [user, loadBookmarks])
 
-    // Get current session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session?.user) {
-        setUser(session.user)
-        loadUserBookmarks(session.user.id)
-      }
-    })
-
-    // Listen to auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (session?.user) {
-        setUser(session.user)
-        loadUserBookmarks(session.user.id)
-      } else {
-        setUser(null)
-        setBookmarkedIds([])
-      }
-    })
-
-    return () => {
-      subscription.unsubscribe()
-    }
-  }, [])
-
-  const loadUserBookmarks = async (userId: string) => {
-    try {
-      const { data, error } = await supabase
-        .from('bookmarks')
-        .select('cafe_id')
-        .eq('user_id', userId)
-
-      if (!error && data) {
-        setBookmarkedIds(data.map((row: any) => row.cafe_id))
-      }
-    } catch (e) {
-      console.error('Failed to load user bookmarks', e)
-    }
-  }
-
-  const toggleBookmark = async (id: string, e: React.MouseEvent) => {
+  const handleToggleBookmark = async (id: string, e: React.MouseEvent) => {
     e.preventDefault()
     e.stopPropagation()
 
     if (!user) {
-      // User is not logged in -> trigger Auth Modal
       setPendingBookmarkCafeId(id)
       setAuthModalTab('login')
       setIsAuthModalOpen(true)
       return
     }
 
-    try {
-      if (bookmarkedIds.includes(id)) {
-        // Delete bookmark from database
-        const { error } = await supabase
-          .from('bookmarks')
-          .delete()
-          .eq('user_id', user.id)
-          .eq('cafe_id', id)
-
-        if (!error) {
-          setBookmarkedIds((prev) => prev.filter((bId) => bId !== id))
-        }
-      } else {
-        // Add bookmark to database
-        const { error } = await supabase
-          .from('bookmarks')
-          .insert({
-            user_id: user.id,
-            cafe_id: id,
-          })
-
-        if (!error) {
-          setBookmarkedIds((prev) => [...prev, id])
-        }
-      }
-    } catch (err) {
-      console.error('Bookmark toggle failed:', err)
-    }
+    await toggleBookmark(id)
   }
 
   const handleAuthSuccess = async (loggedInUser: any) => {
-    setUser(loggedInUser)
     setIsAuthModalOpen(false)
+    await loadBookmarks(loggedInUser.id)
 
-    // Fetch existing bookmarks for the newly logged-in user
-    await loadUserBookmarks(loggedInUser.id)
-
-    // Save pending bookmark if set
     if (pendingBookmarkCafeId) {
       const targetId = pendingBookmarkCafeId
       setPendingBookmarkCafeId(null)
-      try {
-        const { data: exists } = await supabase
-          .from('bookmarks')
-          .select('id')
-          .eq('user_id', loggedInUser.id)
-          .eq('cafe_id', targetId)
-          .maybeSingle()
-
-        if (!exists) {
-          await supabase.from('bookmarks').insert({
-            user_id: loggedInUser.id,
-            cafe_id: targetId,
-          })
-          setBookmarkedIds((prev) => [...prev, targetId])
-        }
-      } catch (err) {
-        console.error(err)
-      }
+      await addBookmarkIfMissing(targetId)
     }
   }
 
@@ -172,7 +80,7 @@ export default function Home() {
     return matchesSearch && matchesType && matchesCountry
   })
 
-  // Intersection Observer for Lazy Loading (Infinite Scroll)
+  // Intersection Observer for Infinite Scroll
   const observerRef = useRef<IntersectionObserver | null>(null)
   const bottomRef = useCallback((node: HTMLDivElement | null) => {
     if (isLoading) return
@@ -196,63 +104,10 @@ export default function Home() {
   const showReset = searchQuery !== '' || selectedType !== 'ALL' || selectedCountry !== 'ALL'
 
   return (
-    <div className="bg-surface min-h-screen text-on-surface flex flex-col font-sans">
-      <Navbar />
-
+    <PageShell>
       <main className="flex-grow flex flex-col">
-        {/* Hero Section */}
-        <section className="py-20 md:py-24 flex flex-col items-center justify-center text-center px-grid-margin relative overflow-hidden bg-surface border-b border-border-subtle">
-          <div 
-            className="absolute inset-0 opacity-10 pointer-events-none" 
-            style={{ 
-              backgroundImage: 'radial-gradient(#c4c7c7 1px, transparent 1px)', 
-              backgroundSize: '24px 24px' 
-            }}
-          />
-          <div className="z-10 flex flex-col items-center max-w-2xl w-full">
-            <h1 className="font-hanken text-[48px] md:text-display-lg font-extrabold text-primary uppercase tracking-tighter mb-4 leading-none">
-               ROOT
-            </h1>
-            <p className="font-sans text-body-lg text-secondary max-w-lg mx-auto mb-8">
-              A curated selection of the finest specialty coffee spaces and independent roasters worldwide.
-            </p>
+        <HeroSection searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
 
-            {/* Search Bar + Map Button Row */}
-            <div className="w-full max-w-2xl flex items-stretch gap-3">
-              {/* Big Prominent Search Bar */}
-              <div className="flex-grow relative flex items-center border-2 border-primary bg-canvas-white px-5 py-4 focus-within:ring-4 focus-within:ring-primary/10 transition-all duration-300 shadow-md">
-                <span className="material-symbols-outlined text-primary text-[28px] mr-4">search</span>
-                <input 
-                  className="bg-transparent border-none outline-none focus:ring-0 p-0 font-sans text-[18px] md:text-[22px] font-semibold w-full text-on-surface placeholder:text-outline/65" 
-                  placeholder="Search workspaces, cities, or roasters..." 
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
-                {searchQuery && (
-                  <button 
-                    onClick={() => setSearchQuery('')}
-                    className="text-secondary hover:text-primary transition-colors ml-2"
-                    aria-label="Clear search"
-                  >
-                    <span className="material-symbols-outlined text-[22px]">close</span>
-                  </button>
-                )}
-              </div>
-
-              {/* Map Button */}
-              <Link 
-                href="/map"
-                className="flex items-center justify-center gap-2 px-5 bg-primary text-on-primary border-2 border-primary hover:bg-tertiary-container transition-colors shadow-md shrink-0"
-              >
-                <span className="material-symbols-outlined text-[24px]">map</span>
-                <span className="font-mono text-label-caps tracking-widest hidden sm:inline">Map</span>
-              </Link>
-            </div>
-          </div>
-        </section>
-
-        {/* Filter Strip */}
         <FilterStrip 
           searchQuery={searchQuery}
           setSearchQuery={setSearchQuery}
@@ -285,8 +140,8 @@ export default function Home() {
                     <DirectoryCard 
                       key={cafe.id}
                       cafe={cafe}
-                      isBookmarked={bookmarkedIds.includes(cafe.id)}
-                      onToggleBookmark={toggleBookmark}
+                      isBookmarked={isBookmarked(cafe.id)}
+                      onToggleBookmark={handleToggleBookmark}
                     />
                   ))}
                 </div>
@@ -305,15 +160,12 @@ export default function Home() {
         </section>
       </main>
 
-      {/* Auth Modal (Triggered on bookmark click if unauthenticated) */}
       <AuthModal 
         isOpen={isAuthModalOpen}
         initialTab={authModalTab}
         onClose={() => setIsAuthModalOpen(false)}
         onSuccess={handleAuthSuccess}
       />
-
-      <Footer />
-    </div>
+    </PageShell>
   )
 }
