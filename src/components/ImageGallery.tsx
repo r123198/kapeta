@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
 
 interface ImageGalleryProps {
   images: string[]
@@ -40,14 +41,14 @@ export default function ImageGallery({ images, altPrefix }: ImageGalleryProps) {
             className="absolute left-4 top-1/2 -translate-y-1/2 bg-canvas-white/80 hover:bg-canvas-white text-primary p-2 rounded-full border border-border-subtle shadow-sm transition-all opacity-0 group-hover/gallery:opacity-100 z-10 flex items-center justify-center"
             aria-label="Previous image"
           >
-            <span className="material-symbols-outlined text-[20px]">chevron_left</span>
+            <ChevronLeft className="w-5 h-5" />
           </button>
           <button 
             onClick={handleNext}
             className="absolute right-4 top-1/2 -translate-y-1/2 bg-canvas-white/80 hover:bg-canvas-white text-primary p-2 rounded-full border border-border-subtle shadow-sm transition-all opacity-0 group-hover/gallery:opacity-100 z-10 flex items-center justify-center"
             aria-label="Next image"
           >
-            <span className="material-symbols-outlined text-[20px]">chevron_right</span>
+            <ChevronRight className="w-5 h-5" />
           </button>
 
           {/* Dots Indicators */}

@@ -17,7 +17,9 @@ export function useAuth() {
   })
 
   useEffect(() => {
-    async function fetchProfile(userId: string, defaultRole?: string) {
+    let isMounted = true
+
+    async function fetchProfileRole(userId: string, defaultRole?: string) {
       try {
         const { data } = await supabase
           .from('profiles')
@@ -25,33 +27,59 @@ export function useAuth() {
           .eq('id', userId)
           .single()
 
-        return data?.role || defaultRole || 'managers'
+        return data?.role || defaultRole || 'user'
       } catch {
-        return defaultRole || 'managers'
+        return defaultRole || 'user'
       }
     }
 
     // Initial session check
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
-      if (session?.user) {
-        const role = await fetchProfile(session.user.id, session.user.user_metadata?.role)
-        setState({ user: session.user, role, loading: false })
-      } else {
-        setState({ user: null, role: null, loading: false })
-      }
-    })
+    supabase.auth
+      .getSession()
+      .then(({ data: { session } }) => {
+        if (!isMounted) return
+        if (session?.user) {
+          const initialRole = session.user.user_metadata?.role || 'user'
+          setState({ user: session.user, role: initialRole, loading: false })
+          setTimeout(() => {
+            fetchProfileRole(session.user.id, initialRole).then((resolvedRole) => {
+              if (isMounted) {
+                setState((prev) => ({ ...prev, role: resolvedRole, loading: false }))
+              }
+            })
+          }, 0)
+        } else {
+          setState({ user: null, role: null, loading: false })
+        }
+      })
+      .catch(() => {
+        if (isMounted) {
+          setState({ user: null, role: null, loading: false })
+        }
+      })
 
-    // Listen to auth state changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+    // Listen to auth state changes WITHOUT awaiting inside the callback (prevents Supabase lock deadlock)
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!isMounted) return
       if (session?.user) {
-        const role = await fetchProfile(session.user.id, session.user.user_metadata?.role)
-        setState({ user: session.user, role, loading: false })
+        const initialRole = session.user.user_metadata?.role || 'user'
+        setState({ user: session.user, role: initialRole, loading: false })
+        setTimeout(() => {
+          fetchProfileRole(session.user.id, initialRole).then((resolvedRole) => {
+            if (isMounted) {
+              setState((prev) => ({ ...prev, role: resolvedRole, loading: false }))
+            }
+          })
+        }, 0)
       } else {
         setState({ user: null, role: null, loading: false })
       }
     })
 
     return () => {
+      isMounted = false
       subscription.unsubscribe()
     }
   }, [])

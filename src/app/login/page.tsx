@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { ArrowRight } from 'lucide-react'
 import PageShell from '@/components/PageShell'
 import { supabase } from '@/lib/supabase'
 
@@ -28,20 +29,7 @@ export default function LoginPage() {
       if (error) {
         setErrorMsg(error.message)
       } else if (data.user) {
-        // Query profile role
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('role')
-          .eq('id', data.user.id)
-          .single()
-
-        const activeRole = profile?.role || data.user.user_metadata?.role || 'managers'
-
-        if (activeRole === 'superadmin' || activeRole === 'admin') {
-          router.push('/admin')
-        } else {
-          router.push('/')
-        }
+        router.push('/directory')
       }
     } catch (err: any) {
       setErrorMsg(err.message || 'An unexpected error occurred.')
@@ -115,7 +103,7 @@ export default function LoginPage() {
                   disabled={loading}
                 >
                   {loading ? 'Signing In...' : 'Sign In'}
-                  <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
+                  <ArrowRight className="w-4 h-4" />
                 </button>
                 
                 <div className="text-center font-sans text-body-sm text-secondary">

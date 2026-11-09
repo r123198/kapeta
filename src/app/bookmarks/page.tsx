@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { Loader2, Search, Bookmark, BookmarkMinus } from 'lucide-react'
 import PageShell from '@/components/PageShell'
 import { Cafe } from '@/lib/data'
 import { useAuth } from '@/hooks/useAuth'
@@ -59,7 +60,8 @@ export default function BookmarksPage() {
   if (!mounted) {
     return (
       <PageShell>
-        <div className="flex-grow flex items-center justify-center">
+        <div className="flex-grow flex flex-col items-center justify-center gap-3">
+          <Loader2 className="w-8 h-8 text-primary animate-spin" />
           <span className="font-mono text-label-caps text-secondary">Verifying session...</span>
         </div>
       </PageShell>
@@ -93,9 +95,7 @@ export default function BookmarksPage() {
           {/* Filtering Bar */}
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 mb-6">
             <div className="relative w-full sm:w-64">
-              <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-secondary text-[18px]">
-                search
-              </span>
+              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-secondary" />
               <input 
                 className="w-full pl-9 pr-4 py-2 border border-border-subtle bg-canvas-white font-sans text-body-sm text-primary placeholder-secondary focus:border-primary focus:ring-0 transition-colors rounded-none" 
                 placeholder="Search bookmarks..." 
@@ -131,9 +131,7 @@ export default function BookmarksPage() {
           {/* Archival List View */}
           {filteredBookmarks.length === 0 ? (
             <div className="text-center py-20 border border-border-subtle bg-canvas-white">
-              <span className="material-symbols-outlined text-[48px] text-secondary mb-4">
-                bookmarks
-              </span>
+              <Bookmark className="w-12 h-12 text-secondary mx-auto mb-4" />
               <p className="font-mono text-label-caps text-secondary">
                 {bookmarkedCafes.length === 0 
                   ? 'Your saved spaces list is empty.' 
@@ -216,9 +214,7 @@ export default function BookmarksPage() {
                         aria-label="Remove bookmark"
                       >
                         <span className="font-mono text-[10px] uppercase md:hidden">Remove</span>
-                        <span className="material-symbols-outlined text-[20px]">
-                          bookmark_remove
-                        </span>
+                        <BookmarkMinus className="w-5 h-5" />
                       </button>
                     </div>
 

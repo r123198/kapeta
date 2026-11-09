@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { Eye, EyeOff, LogIn, Smartphone } from 'lucide-react'
 import PageShell from '@/components/PageShell'
 import { supabase } from '@/lib/supabase'
 import { useCafes } from '@/hooks/useCafes'
@@ -144,9 +145,7 @@ export default function SignupPage() {
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
                 >
-                  <span className="material-symbols-outlined text-[18px]">
-                    {showPassword ? 'visibility' : 'visibility_off'}
-                  </span>
+                  {showPassword ? <Eye className="w-[18px] h-[18px]" /> : <EyeOff className="w-[18px] h-[18px]" />}
                 </button>
               </div>
             </div>
@@ -232,14 +231,14 @@ export default function SignupPage() {
               className="flex-1 bg-canvas-white border border-border-subtle text-primary font-mono text-label-caps uppercase tracking-widest py-3 hover:bg-surface-alt hover:border-primary transition-all duration-200 flex items-center justify-center gap-2" 
               type="button"
             >
-              <span className="material-symbols-outlined text-[18px]">login</span>
+              <LogIn className="w-4 h-4" />
               Google
             </button>
             <button 
               className="flex-grow flex-1 bg-canvas-white border border-border-subtle text-primary font-mono text-label-caps uppercase tracking-widest py-3 hover:bg-surface-alt hover:border-primary transition-all duration-200 flex items-center justify-center gap-2" 
               type="button"
             >
-              <span className="material-symbols-outlined text-[18px]">apps</span>
+              <Smartphone className="w-4 h-4" />
               Apple
             </button>
           </div>

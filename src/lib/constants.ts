@@ -51,9 +51,11 @@ export const MEDIA_LOGOS = [
 ]
 
 export const NAVIGATION_LINKS = [
-  { label: 'Directory', path: '/' },
-  { label: 'Map', path: '/map' },
-  { label: 'Bookmarks', path: '/bookmarks' },
+  { label: 'Map', path: '/' },
+  { label: 'Directory', path: '/directory' },
+  { label: 'News', path: '/news' },
+  { label: 'Badges', path: '/badges' },
+  { label: 'Shop Studio', path: '/studio' },
   { label: 'Admin', path: '/admin' }
 ]
 

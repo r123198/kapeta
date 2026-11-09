@@ -2,79 +2,40 @@
 
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
+import { Menu, X, Map, Compass, Bookmark, User, Award, Megaphone, Newspaper, ShieldAlert } from 'lucide-react'
 import { NAVIGATION_LINKS } from '@/lib/constants'
-import { supabase } from '@/lib/supabase'
+import { useAuth } from '@/hooks/useAuth'
 
 export default function Navbar() {
   const pathname = usePathname()
   const router = useRouter()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-
-  // Auth state
-  const [user, setUser] = useState<any>(null)
-  const [role, setRole] = useState<string | null>(null)
+  const { user, role, logout } = useAuth()
 
   const isActive = (path: string) => pathname === path
 
-  useEffect(() => {
-    async function fetchProfile(userId: string, defaultRole: string) {
-      try {
-        const { data } = await supabase
-          .from('profiles')
-          .select('role')
-          .eq('id', userId)
-          .single()
-
-        setRole(data?.role || defaultRole || 'managers')
-      } catch (err) {
-        setRole(defaultRole || 'managers')
-      }
-    }
-
-    // Initial session check
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session?.user) {
-        setUser(session.user)
-        fetchProfile(session.user.id, session.user.user_metadata?.role)
-      } else {
-        setUser(null)
-        setRole(null)
-      }
-    })
-
-    // Listen to changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (session?.user) {
-        setUser(session.user)
-        fetchProfile(session.user.id, session.user.user_metadata?.role)
-      } else {
-        setUser(null)
-        setRole(null)
-      }
-    })
-
-    return () => {
-      subscription.unsubscribe()
-    }
-  }, [])
-
   const handleLogout = async () => {
-    await supabase.auth.signOut()
+    await logout()
     router.push('/')
   }
 
-  // Filter links: only show Admin to superadmin and admin
+  // Filter links: show logged-in navigation items
   const filteredLinks = NAVIGATION_LINKS.filter(link => {
-    if (link.path === '/admin') {
-      return role === 'superadmin' || role === 'admin'
+    if (
+      link.path === '/directory' ||
+      link.path === '/badges' ||
+      link.path === '/studio' ||
+      link.path === '/admin'
+    ) {
+      return !!user
     }
     return true
   })
 
   // Links displayed in the top desktop header & mobile menu drawer
   const headerLinks = filteredLinks.filter(link => {
-    return link.path !== '/' && link.path !== '/map' && link.path !== '/bookmarks'
+    return link.path !== '/bookmarks'
   })
 
   return (
@@ -88,16 +49,16 @@ export default function Navbar() {
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             aria-label="Toggle mobile menu"
           >
-            <span className="material-symbols-outlined">
-              {mobileMenuOpen ? 'close' : 'menu'}
-            </span>
+            {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
           </button>
           <Link href="/" className="font-hanken text-headline-lg-mobile md:text-headline-lg font-bold text-primary tracking-tight">
             ROOT
           </Link>
-          <span className="font-mono text-label-caps text-secondary mt-1 hidden md:block">
-            A Curated Directory
-          </span>
+          {user && (
+            <span className="font-mono text-label-caps text-secondary mt-1 hidden md:block">
+              A Curated Directory
+            </span>
+          )}
         </div>
 
         {/* Middle: Desktop Navigation Links */}
@@ -131,14 +92,14 @@ export default function Navbar() {
               </button>
             </div>
           ) : (
-            <>
-              <Link href="/login" className="hidden md:block font-mono text-label-caps text-secondary hover:text-primary transition-colors">
-                Log In
-              </Link>
-              <Link href="/signup" className="font-mono text-label-caps bg-primary text-on-primary px-4 py-2 hover:bg-tertiary-container transition-colors">
-                Sign Up
-              </Link>
-            </>
+            <Link
+              href="/login"
+              title="Log In"
+              aria-label="Log In"
+              className="w-9 h-9 flex items-center justify-center border border-border-subtle text-primary hover:bg-surface-alt hover:border-primary transition-colors"
+            >
+              <User className="w-4 h-4" />
+            </Link>
           )}
         </div>
       </header>
@@ -158,30 +119,24 @@ export default function Navbar() {
                 {link.label}
               </Link>
             ))}
-            <hr className="border-border-subtle my-2" />
-            {user ? (
-              <div className="flex flex-col gap-4 items-center">
-                <span className="font-mono text-[11px] uppercase text-secondary">
-                  {user.email} ({role})
-                </span>
-                <button
-                  onClick={() => {
-                    setMobileMenuOpen(false)
-                    handleLogout()
-                  }}
-                  className="font-mono text-label-caps text-secondary py-2 border border-border-subtle w-full max-w-[200px]"
-                >
-                  Log Out
-                </button>
-              </div>
-            ) : (
-              <Link
-                href="/login"
-                onClick={() => setMobileMenuOpen(false)}
-                className="font-mono text-label-caps text-secondary py-2"
-              >
-                Log In
-              </Link>
+            {user && (
+              <>
+                <hr className="border-border-subtle my-2" />
+                <div className="flex flex-col gap-4 items-center">
+                  <span className="font-mono text-[11px] uppercase text-secondary">
+                    {user.email} ({role})
+                  </span>
+                  <button
+                    onClick={() => {
+                      setMobileMenuOpen(false)
+                      handleLogout()
+                    }}
+                    className="font-mono text-label-caps text-secondary py-2 border border-border-subtle w-full max-w-[200px]"
+                  >
+                    Log Out
+                  </button>
+                </div>
+              </>
             )}
           </nav>
         </div>
@@ -189,18 +144,29 @@ export default function Navbar() {
 
       {/* Mobile Bottom Navigation Bar (Persistent for quick context switching on mobile) */}
       <nav className="fixed bottom-0 left-0 right-0 bg-canvas-white border-t border-border-subtle flex justify-around py-3 z-50 md:hidden">
-        {filteredLinks.filter(link => link.path !== '/admin').map((link, index) => {
-          const iconName = link.path === '/' ? 'explore' : link.path === '/map' ? 'map' : 'bookmarks'
-          const labelName = link.path === '/' ? 'Discovery' : link.label
+        {filteredLinks.map((link, index) => {
+          const IconComponent =
+            link.path === '/'
+              ? Map
+              : link.path === '/directory'
+              ? Compass
+              : link.path === '/news'
+              ? Newspaper
+              : link.path === '/badges'
+              ? Award
+              : link.path === '/studio'
+              ? Megaphone
+              : link.path === '/admin'
+              ? ShieldAlert
+              : Bookmark
+          const labelName = link.path === '/directory' ? 'Directory' : link.label
           return (
             <Link
               key={index}
               href={link.path}
               className={`flex flex-col items-center ${isActive(link.path) ? 'text-primary' : 'text-secondary'}`}
             >
-              <span className={`material-symbols-outlined text-[24px] ${isActive(link.path) ? 'material-symbols-fill' : ''}`}>
-                {iconName}
-              </span>
+              <IconComponent className={`w-6 h-6 ${isActive(link.path) ? 'stroke-[2.5px]' : ''}`} />
               <span className="font-mono text-[9px] uppercase tracking-wider mt-1">{labelName}</span>
             </Link>
           )

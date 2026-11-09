@@ -9,7 +9,11 @@ function getSupabaseClient(): SupabaseClient {
       'Missing Supabase environment variables. Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY.'
     )
   }
-  return createClient(supabaseUrl, supabaseAnonKey)
+  return createClient(supabaseUrl, supabaseAnonKey, {
+    auth: {
+      lock: async (_name: string, _acquireTimeout: number, fn: () => Promise<any>) => await fn(),
+    },
+  })
 }
 
 // Lazily initialise — only created when actually used at runtime, not at import/build time

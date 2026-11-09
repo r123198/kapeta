@@ -1,29 +1,31 @@
+import { Bookmark, ExternalLink } from 'lucide-react'
 import Tooltip from '@/components/Tooltip'
 import { Cafe, CafeSocials } from '@/lib/data'
 
 interface CafeDetailSidebarProps {
   cafe: Cafe
   socials: CafeSocials
+  isLoggedIn?: boolean
   isBookmarked: boolean
   onToggleBookmark: () => void
 }
 
-export default function CafeDetailSidebar({ cafe, socials, isBookmarked, onToggleBookmark }: CafeDetailSidebarProps) {
+export default function CafeDetailSidebar({ cafe, socials, isLoggedIn = false, isBookmarked, onToggleBookmark }: CafeDetailSidebarProps) {
   return (
     <aside className="w-full md:w-80 lg:w-96 bg-canvas-white flex flex-col shrink-0 md:sticky md:top-32 md:h-[calc(100vh-14rem)] md:overflow-y-auto no-scrollbar">
       
-      {/* Desktop Action Bar */}
-      <div className="hidden md:block p-4 md:p-stack-md border-b border-border-subtle sticky top-0 bg-canvas-white z-10">
-        <button 
-          onClick={onToggleBookmark}
-          className="w-full py-3.5 bg-primary text-on-primary font-mono text-label-caps flex items-center justify-center gap-2 hover:bg-tertiary-container transition-colors uppercase tracking-widest"
-        >
-          <span className={`material-symbols-outlined text-[18px] ${isBookmarked ? 'material-symbols-fill' : ''}`}>
-            {isBookmarked ? 'bookmark' : 'bookmark_add'}
-          </span>
-          {isBookmarked ? 'Saved to Bookmarks' : 'Save to Bookmarks'}
-        </button>
-      </div>
+      {/* Desktop Action Bar (Only when logged in) */}
+      {isLoggedIn && (
+        <div className="hidden md:block p-4 md:p-stack-md border-b border-border-subtle sticky top-0 bg-canvas-white z-10">
+          <button 
+            onClick={onToggleBookmark}
+            className="w-full py-3.5 bg-primary text-on-primary font-mono text-label-caps flex items-center justify-center gap-2 hover:bg-tertiary-container transition-colors uppercase tracking-widest"
+          >
+            <Bookmark className={`w-[18px] h-[18px] ${isBookmarked ? 'fill-current' : ''}`} />
+            {isBookmarked ? 'Saved to Directory' : 'Save to Directory'}
+          </button>
+        </div>
+      )}
 
       {/* Quality Ratings */}
       <div className="p-6 border-b border-border-subtle">
@@ -125,7 +127,7 @@ export default function CafeDetailSidebar({ cafe, socials, isBookmarked, onToggl
             </div>
             <span className="font-sans text-body-sm text-on-surface-variant group-hover/contact:text-primary group-hover/contact:underline flex items-center gap-1.5 font-medium">
               Visit Site
-              <span className="material-symbols-outlined text-[14px]">open_in_new</span>
+              <ExternalLink className="w-3.5 h-3.5" />
             </span>
           </a>
 

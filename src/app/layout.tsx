@@ -8,19 +8,19 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "ROOT - Discover Iligan's Best Coffee Shops",
-  description: "Let's get coffee! Know the beans, know the vibe, know before you go. Your local guide to work-friendly cafes in Iligan City.",
-  keywords: "coffee shops, Iligan City, remote work, cafes, coffee directory, ROOT",
+  title: "ROOT — Curated Coffee Directory & Map",
+  description: "Let's get coffee! Know the beans, know the vibe, know before you go. Discover specialty coffee spaces, lived experiences, and community happenings.",
+  keywords: "coffee shops, Cagayan de Oro, specialty coffee, remote work, cafes, coffee directory, ROOT",
   authors: [{ name: "ROOT" }],
   openGraph: {
-    title: "ROOT - Discover Iligan's Best Coffee Shops",
+    title: "ROOT — Curated Coffee Directory & Map",
     description: "Let's get coffee! Know the beans, know the vibe, know before you go.",
     type: "website",
     locale: "en_US",
   },
   twitter: {
     card: "summary_large_image",
-    title: "ROOT - Discover Iligan's Best Coffee Shops",
+    title: "ROOT — Curated Coffee Directory & Map",
     description: "Let's get coffee! Know the beans, know the vibe, know before you go.",
   },
 };
@@ -33,9 +33,11 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link 
           rel="stylesheet" 
-          href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap" 
+          href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=block" 
         />
         <link 
           rel="stylesheet"

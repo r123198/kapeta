@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { X } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 
 interface AuthModalProps {
@@ -78,8 +79,9 @@ export default function AuthModal({ isOpen, initialTab, onClose, onSuccess }: Au
         <button 
           onClick={onClose}
           className="absolute top-4 right-4 text-secondary hover:text-primary transition-colors"
+          aria-label="Close modal"
         >
-          <span className="material-symbols-outlined">close</span>
+          <X className="w-5 h-5" />
         </button>
 
         {/* Tab Headers */}
