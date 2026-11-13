@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import {
   X,
-  Wifi,
   ArrowRight,
   Clock,
   MapPin,
@@ -23,9 +22,6 @@ import {
   Trash2,
   AlertCircle,
   MessageSquareText,
-  HelpCircle,
-  Megaphone,
-  Calendar,
 } from 'lucide-react'
 import Tooltip from './Tooltip'
 import {
@@ -38,9 +34,15 @@ import { CafeCuration } from '@/hooks/useBookmarks'
 import {
   getShopGimmicks,
   getShopIdentity,
+  addShopGimmick,
   ShopGimmick,
   ShopIdentity,
 } from '@/lib/ownerStudio'
+import {
+  getNewsArticles,
+  addNewsArticle,
+  NewsArticle,
+} from '@/lib/adminStore'
 
 interface CafeDetailDrawerProps {
   selectedCafe: Cafe
@@ -48,6 +50,8 @@ interface CafeDetailDrawerProps {
   isLoggedIn?: boolean
   isBookmarked?: boolean
   onOpenCuration?: () => void
+  canModerate?: boolean
+  onNewsOrEventAdded?: () => void
 }
 
 export function CafeDetailDrawer({
@@ -56,11 +60,18 @@ export function CafeDetailDrawer({
   isLoggedIn = false,
   isBookmarked = false,
   onOpenCuration,
+  canModerate = false,
+  onNewsOrEventAdded,
 }: CafeDetailDrawerProps) {
   const images = getCafeImages(selectedCafe)
   const [imgIdx, setImgIdx] = useState(0)
   const [gimmicks, setGimmicks] = useState<ShopGimmick[]>([])
+  const [cafeNews, setCafeNews] = useState<NewsArticle[]>([])
   const [identity, setIdentity] = useState<ShopIdentity | null>(null)
+  const [showAddForm, setShowAddForm] = useState(false)
+  const [postType, setPostType] = useState<'event' | 'news'>('event')
+  const [postTitle, setPostTitle] = useState('')
+  const [postDescription, setPostDescription] = useState('')
 
   const isRoastery = isCafeRoastery(selectedCafe)
   const is24h = isCafe24Hours(selectedCafe)
@@ -69,8 +80,45 @@ export function CafeDetailDrawer({
   useEffect(() => {
     setImgIdx(0)
     setGimmicks(getShopGimmicks(selectedCafe.id))
+    setCafeNews(getNewsArticles().filter((a) => a.cafeId === selectedCafe.id))
     setIdentity(getShopIdentity(selectedCafe.id))
+    setShowAddForm(false)
   }, [selectedCafe.id])
+
+  const handleQuickAdd = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!postTitle.trim() || !postDescription.trim()) return
+
+    if (postType === 'event') {
+      addShopGimmick({
+        cafeId: selectedCafe.id,
+        title: postTitle.trim(),
+        category: 'Community Pop-Up',
+        schedule: 'Live Event',
+        description: postDescription.trim(),
+      })
+    } else {
+      addNewsArticle({
+        title: postTitle.trim(),
+        subtitle: postDescription.trim(),
+        category: 'Promo & Perk',
+        locationArea: 'Corrales & Lifestyle District',
+        cafeId: selectedCafe.id,
+        cafeName: selectedCafe.name,
+        author: `${selectedCafe.name} Moderator`,
+        readTime: '1 min read',
+        image: selectedCafe.image,
+        body: [postDescription.trim()],
+      })
+    }
+
+    setGimmicks(getShopGimmicks(selectedCafe.id))
+    setCafeNews(getNewsArticles().filter((a) => a.cafeId === selectedCafe.id))
+    setPostTitle('')
+    setPostDescription('')
+    setShowAddForm(false)
+    onNewsOrEventAdded?.()
+  }
 
   return (
     <aside
@@ -158,7 +206,7 @@ export function CafeDetailDrawer({
           <X className="w-4 h-4 text-primary" />
         </button>
 
-        {/* Status & Type Badges */}
+            {/*Status & Type Badges */}
         <div className="absolute bottom-3 left-4 flex flex-wrap items-center gap-1.5 z-10">
           <span
             className={`px-2.5 py-1 font-mono text-[10px] uppercase tracking-wider border ${
@@ -170,33 +218,23 @@ export function CafeDetailDrawer({
             {isOpen ? 'Open Now' : 'Closed'}
           </span>
           {is24h && (
-            <Tooltip content="This cafe operates 24 hours a day, 7 days a week.">
-              <span className="px-2.5 py-1 bg-canvas-white text-primary border border-primary font-mono text-[10px] font-bold uppercase tracking-wider cursor-help">
-                24/7
-              </span>
-            </Tooltip>
-          )}
-          <Tooltip
-            content={
-              isRoastery
-                ? 'Roastery (Bean marker): Roasts their own coffee beans in-house.'
-                : 'Cafe (Cup marker): Serves specialty espresso and filter drinks.'
-            }
-          >
-            <span className="px-2.5 py-1 bg-canvas-white/95 text-primary border border-border-subtle font-mono text-[10px] uppercase tracking-wider flex items-center gap-1 cursor-help">
-              {isRoastery ? <Flame className="w-3 h-3 text-amber-600" /> : <Coffee className="w-3 h-3" />}
-              {isRoastery ? 'Roastery' : 'Cafe'}
+            <span className="px-2.5 py-1 bg-canvas-white text-primary border border-primary font-mono text-[10px] font-bold uppercase tracking-wider">
+              24/7
             </span>
-          </Tooltip>
+          )}
+          <span className="px-2.5 py-1 bg-canvas-white/95 text-primary border border-border-subtle font-mono text-[10px] uppercase tracking-wider flex items-center gap-1">
+            {isRoastery ? <Flame className="w-3 h-3 text-amber-600" /> : <Coffee className="w-3 h-3" />}
+            {isRoastery ? 'Roastery' : 'Cafe'}
+          </span>
         </div>
       </div>
 
       {/* Drawer Content */}
-      <div className="flex-grow flex flex-col p-6 space-y-5">
+      <div className="flex-grow flex flex-col p-5 space-y-4">
         {/* Title, Address, Opening Hours */}
         <div className="border-b border-border-subtle pb-4">
-          <div className="flex justify-between items-start gap-2 mb-1.5">
-            <h2 className="font-hanken text-title-md text-primary tracking-tight font-bold">
+          <div className="flex justify-between items-start gap-2 mb-1">
+            <h2 className="font-hanken text-title-md text-primary font-bold">
               {selectedCafe.name}
             </h2>
             {selectedCafe.distance && (
@@ -205,74 +243,21 @@ export function CafeDetailDrawer({
               </span>
             )}
           </div>
-          <div className="flex items-center gap-1.5 text-secondary font-sans text-body-sm mb-1">
+          <div className="flex items-center gap-1.5 text-secondary font-sans text-body-sm mb-1.5">
             <MapPin className="w-3.5 h-3.5 shrink-0" />
             <span>{selectedCafe.location}</span>
           </div>
           <div className="flex items-center gap-1.5 text-primary font-mono text-[11px] uppercase tracking-wider">
             <Clock className="w-3.5 h-3.5 shrink-0 text-secondary" />
             <span>{selectedCafe.hours || '8:00 AM - 9:00 PM'}</span>
-            {is24h && (
-              <span className="ml-1 px-1.5 py-0.5 bg-primary text-canvas-white text-[9px] font-bold">
-                OPEN 24/7
-              </span>
-            )}
           </div>
           {identity && (
-            <div className="mt-2.5 inline-flex items-center gap-1.5 px-2.5 py-1 bg-amber-50 border border-amber-200 font-mono text-[9px] uppercase tracking-wider text-amber-900 font-semibold">
-              <Sparkles className="w-3 h-3 text-amber-700 shrink-0" />
+            <div className="mt-2.5 inline-flex items-center gap-1.5 px-2.5 py-1 bg-amber-50 border border-amber-200 font-sans text-xs font-medium text-amber-900">
+              <Sparkles className="w-3.5 h-3.5 text-amber-700 shrink-0" />
               <span>{identity.signatureConcept}</span>
             </div>
           )}
         </div>
-
-        {/* Live Owner Happenings / Gimmicks Section */}
-        {gimmicks.length > 0 && (
-          <div className="p-3.5 bg-amber-50/50 border border-amber-300 border-l-4 border-l-amber-600 space-y-2.5">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-1.5">
-                <Megaphone className="w-3.5 h-3.5 text-amber-700" />
-                <span className="font-mono text-[10px] uppercase tracking-wider text-amber-900 font-bold">
-                  Shop Happenings &amp; Gimmicks
-                </span>
-              </div>
-              <Tooltip
-                position="left"
-                content="Special events, tournaments, pop-up carts, or day-to-night concepts announced by the coffee shop owner."
-              >
-                <HelpCircle className="w-3.5 h-3.5 text-amber-700 cursor-help" />
-              </Tooltip>
-            </div>
-
-            {gimmicks.slice(0, 2).map((g) => (
-              <div
-                key={g.id}
-                className="bg-canvas-white border border-amber-200 p-2.5 space-y-1"
-              >
-                <div className="flex items-center justify-between gap-2">
-                  <span className="px-1.5 py-0.5 bg-amber-100 text-amber-900 font-mono text-[8px] uppercase font-bold">
-                    {g.category}
-                  </span>
-                  <span className="font-mono text-[9px] text-secondary flex items-center gap-1">
-                    <Calendar className="w-2.5 h-2.5" />
-                    {g.schedule}
-                  </span>
-                </div>
-                <p className="font-hanken text-[13px] font-bold text-primary leading-snug">
-                  {g.title}
-                </p>
-                <p className="font-sans text-[11px] text-secondary leading-relaxed">
-                  {g.description}
-                </p>
-                {g.perkOrHighlight && (
-                  <p className="font-mono text-[9px] text-emerald-800 bg-emerald-50 border border-emerald-200 px-2 py-0.5 mt-1">
-                    ★ {g.perkOrHighlight}
-                  </p>
-                )}
-              </div>
-            ))}
-          </div>
-        )}
 
         {/* Editorial Snippet */}
         {selectedCafe.review && (
@@ -281,123 +266,188 @@ export function CafeDetailDrawer({
           </p>
         )}
 
-        {/* Highlight Box */}
-        {selectedCafe.topFeature && (
-          <div className="p-3 bg-surface-alt border border-border-subtle flex items-center gap-3">
-            <Wifi className="w-5 h-5 text-primary shrink-0" />
-            <div>
-              <p className="font-mono text-[10px] text-secondary uppercase tracking-wider">
-                Top Feature
-              </p>
-              <p className="font-sans text-body-sm font-semibold text-primary">
-                {selectedCafe.topFeature}
-              </p>
-            </div>
-          </div>
-        )}
-
-        {/* Specialty Scores with Helpful Tooltips */}
-        <div>
-          <div className="flex items-center justify-between mb-1.5">
-            <span className="font-mono text-[9px] uppercase tracking-wider text-secondary">
-              Community Ratings
+        {/* Specialty Scores with Full Readable Labels */}
+        <div className="grid grid-cols-4 border border-border-subtle divide-x divide-border-subtle text-center">
+          <div className="p-2 bg-surface-container-lowest">
+            <span className="block font-mono text-[10px] uppercase tracking-wider text-secondary pb-0.5">
+              Taste
             </span>
-            <Tooltip
-              position="left"
-              content="Hover any score below to see what TST, VIB, SRV, and TOT stand for."
-            >
-              <span className="font-mono text-[9px] text-secondary flex items-center gap-1 cursor-help">
-                <HelpCircle className="w-3 h-3" /> What do these mean?
-              </span>
-            </Tooltip>
+            <span className="font-mono text-sm font-bold text-primary">
+              {selectedCafe.stats.taste.toFixed(1)}
+            </span>
           </div>
-          <div className="grid grid-cols-4 border border-border-subtle divide-x divide-border-subtle text-center">
-            <Tooltip content="Taste Score (out of 10): Quality of coffee beans, roast, and drink preparation.">
-              <div className="w-full p-2 bg-surface-container-lowest cursor-help">
-                <span className="block font-mono text-[9px] tracking-widest text-secondary border-b border-border-subtle pb-1 mb-1">
-                  TST
-                </span>
-                <span className="font-mono text-label-caps text-primary">
-                  {selectedCafe.stats.taste.toFixed(1)}
-                </span>
-              </div>
-            </Tooltip>
-            <Tooltip content="Vibe Score (out of 10): Ambience, lighting, music, and work comfort.">
-              <div className="w-full p-2 bg-surface-container-lowest cursor-help">
-                <span className="block font-mono text-[9px] tracking-widest text-secondary border-b border-border-subtle pb-1 mb-1">
-                  VIB
-                </span>
-                <span className="font-mono text-label-caps text-primary">
-                  {selectedCafe.stats.vibe.toFixed(1)}
-                </span>
-              </div>
-            </Tooltip>
-            <Tooltip content="Service Score (out of 10): Barista warmth, friendliness, and hospitality.">
-              <div className="w-full p-2 bg-surface-container-lowest cursor-help">
-                <span className="block font-mono text-[9px] tracking-widest text-secondary border-b border-border-subtle pb-1 mb-1">
-                  SRV
-                </span>
-                <span className="font-mono text-label-caps text-primary">
-                  {selectedCafe.stats.service.toFixed(1)}
-                </span>
-              </div>
-            </Tooltip>
-            <Tooltip content="Total Score (out of 10): Combined overall experience rating.">
-              <div className="w-full p-2 bg-primary text-on-primary cursor-help">
-                <span className="block font-mono text-[9px] tracking-widest border-b border-on-primary/30 pb-1 mb-1">
-                  TOT
-                </span>
-                <span className="font-mono text-label-caps">
-                  {selectedCafe.stats.total.toFixed(1)}
-                </span>
-              </div>
-            </Tooltip>
+          <div className="p-2 bg-surface-container-lowest">
+            <span className="block font-mono text-[10px] uppercase tracking-wider text-secondary pb-0.5">
+              Vibe
+            </span>
+            <span className="font-mono text-sm font-bold text-primary">
+              {selectedCafe.stats.vibe.toFixed(1)}
+            </span>
+          </div>
+          <div className="p-2 bg-surface-container-lowest">
+            <span className="block font-mono text-[10px] uppercase tracking-wider text-secondary pb-0.5">
+              Service
+            </span>
+            <span className="font-mono text-sm font-bold text-primary">
+              {selectedCafe.stats.service.toFixed(1)}
+            </span>
+          </div>
+          <div className="p-2 bg-primary text-on-primary">
+            <span className="block font-mono text-[10px] uppercase tracking-wider text-on-primary/80 pb-0.5">
+              Overall
+            </span>
+            <span className="font-mono text-sm font-bold">
+              {selectedCafe.stats.total.toFixed(1)}
+            </span>
           </div>
         </div>
 
         {/* Vibe & Coffee Metadata Table */}
         <div className="flex flex-col border border-border-subtle divide-y divide-border-subtle">
-          <div className="flex items-center px-4 py-2.5">
-            <div className="w-1/3 font-mono text-[10px] text-secondary uppercase tracking-wider">
+          <div className="flex items-center justify-between px-3.5 py-2">
+            <span className="font-mono text-[11px] text-secondary uppercase tracking-wider">
               WiFi
-            </div>
-            <div className="w-2/3 font-sans text-body-sm text-primary">
+            </span>
+            <span className="font-sans text-body-sm text-primary text-right">
               {selectedCafe.vibe.wifi || 'Available'}
-            </div>
+            </span>
           </div>
-          <div className="flex items-center px-4 py-2.5">
-            <div className="w-1/3 font-mono text-[10px] text-secondary uppercase tracking-wider">
+          <div className="flex items-center justify-between px-3.5 py-2">
+            <span className="font-mono text-[11px] text-secondary uppercase tracking-wider">
               Outlets
-            </div>
-            <div className="w-2/3 font-sans text-body-sm text-primary">
+            </span>
+            <span className="font-sans text-body-sm text-primary text-right">
               {selectedCafe.vibe.outlets || 'Standard'}
-            </div>
+            </span>
           </div>
-          <div className="flex items-center px-4 py-2.5">
-            <div className="w-1/3 font-mono text-[10px] text-secondary uppercase tracking-wider">
+          <div className="flex items-center justify-between px-3.5 py-2">
+            <span className="font-mono text-[11px] text-secondary uppercase tracking-wider">
               Seating
-            </div>
-            <div className="w-2/3 font-sans text-body-sm text-primary">
+            </span>
+            <span className="font-sans text-body-sm text-primary text-right">
               {selectedCafe.vibe.seating || 'Indoor'}
-            </div>
+            </span>
           </div>
-          <div className="flex items-center px-4 py-2.5">
-            <div className="w-1/3 font-mono text-[10px] text-secondary uppercase tracking-wider">
+          <div className="flex items-center justify-between px-3.5 py-2">
+            <span className="font-mono text-[11px] text-secondary uppercase tracking-wider">
               Roaster
-            </div>
-            <div className="w-2/3 font-sans text-body-sm text-primary">
+            </span>
+            <span className="font-sans text-body-sm text-primary text-right">
               {selectedCafe.coffee.roaster || 'Local Roasters'}
-            </div>
+            </span>
           </div>
-          <div className="flex items-center px-4 py-2.5">
-            <div className="w-1/3 font-mono text-[10px] text-secondary uppercase tracking-wider">
+          <div className="flex items-center justify-between px-3.5 py-2">
+            <span className="font-mono text-[11px] text-secondary uppercase tracking-wider">
               Beans
-            </div>
-            <div className="w-2/3 font-sans text-body-sm text-primary">
+            </span>
+            <span className="font-sans text-body-sm text-primary text-right">
               {selectedCafe.coffee.beans || 'Single Origin & Blend'}
-            </div>
+            </span>
           </div>
         </div>
+
+        {/* Live Shop Events & News Section */}
+        {(gimmicks.length > 0 || cafeNews.length > 0 || canModerate) && (
+          <div className="p-3.5 bg-amber-50/40 border border-amber-200 space-y-2.5">
+            <div className="flex items-center justify-between">
+              <span className="font-mono text-[11px] uppercase tracking-wider font-semibold text-primary">
+                Shop Updates
+              </span>
+              {canModerate && (
+                <button
+                  type="button"
+                  onClick={() => setShowAddForm(!showAddForm)}
+                  className="inline-flex items-center gap-1 px-2.5 py-1 bg-primary text-canvas-white font-mono text-[10px] uppercase tracking-wider hover:opacity-90 transition-opacity cursor-pointer"
+                >
+                  <Plus className="w-3 h-3" />
+                  {showAddForm ? 'Cancel' : 'Post'}
+                </button>
+              )}
+            </div>
+
+            {showAddForm && canModerate && (
+              <form
+                onSubmit={handleQuickAdd}
+                className="bg-canvas-white border border-border-subtle p-3 space-y-2.5"
+              >
+                <div className="flex gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => setPostType('event')}
+                    className={`flex-1 py-1.5 text-xs font-sans font-medium border cursor-pointer ${
+                      postType === 'event'
+                        ? 'bg-primary text-canvas-white border-primary'
+                        : 'bg-surface-alt text-secondary border-border-subtle'
+                    }`}
+                  >
+                    Live Event
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPostType('news')}
+                    className={`flex-1 py-1.5 text-xs font-sans font-medium border cursor-pointer ${
+                      postType === 'news'
+                        ? 'bg-primary text-canvas-white border-primary'
+                        : 'bg-surface-alt text-secondary border-border-subtle'
+                    }`}
+                  >
+                    Promo / News
+                  </button>
+                </div>
+                <input
+                  type="text"
+                  required
+                  value={postTitle}
+                  onChange={(e) => setPostTitle(e.target.value)}
+                  placeholder="Headline"
+                  className="w-full px-2.5 py-2 border border-border-subtle font-sans text-xs text-primary focus:outline-none focus:border-primary"
+                />
+                <textarea
+                  rows={2}
+                  required
+                  value={postDescription}
+                  onChange={(e) => setPostDescription(e.target.value)}
+                  placeholder="Short description..."
+                  className="w-full px-2.5 py-2 border border-border-subtle font-sans text-xs text-primary focus:outline-none focus:border-primary"
+                />
+                <button
+                  type="submit"
+                  className="w-full py-2 bg-emerald-700 text-white font-sans text-xs font-semibold hover:bg-emerald-800 transition-colors cursor-pointer"
+                >
+                  Publish
+                </button>
+              </form>
+            )}
+
+            {gimmicks.slice(0, 2).map((g) => (
+              <div
+                key={g.id}
+                className="bg-canvas-white border border-border-subtle p-2.5 space-y-0.5"
+              >
+                <h4 className="font-hanken text-sm font-bold text-primary leading-snug">
+                  {g.title}
+                </h4>
+                <p className="font-sans text-xs text-secondary leading-relaxed line-clamp-2">
+                  {g.description}
+                </p>
+              </div>
+            ))}
+
+            {cafeNews.slice(0, 2).map((n) => (
+              <div
+                key={n.id}
+                className="bg-canvas-white border border-border-subtle p-2.5 space-y-0.5"
+              >
+                <h4 className="font-hanken text-sm font-bold text-primary leading-snug">
+                  {n.title}
+                </h4>
+                <p className="font-sans text-xs text-secondary leading-relaxed line-clamp-2">
+                  {n.subtitle}
+                </p>
+              </div>
+            ))}
+          </div>
+        )}
 
         {/* Action Buttons */}
         <div className="mt-auto pt-2 flex flex-col gap-2">
@@ -767,26 +817,21 @@ export function CafeCurationDrawer({
               >
                 {isBookmarked ? 'In Your Collection' : 'Lived Experience'}
               </span>
-              <Tooltip
-                position="bottom"
-                content="Green means a question is answered and tucked away. Amber means it still needs your input."
+              <span
+                className={`font-mono text-[10px] uppercase tracking-wider px-2 py-0.5 border ${
+                  answeredRequiredCount === 4
+                    ? 'bg-emerald-50 text-emerald-700 border-emerald-300 font-bold'
+                    : 'bg-amber-50 text-amber-800 border-amber-200 font-semibold'
+                }`}
               >
-                <span
-                  className={`font-mono text-[10px] uppercase tracking-wider px-2 py-0.5 border cursor-help ${
-                    answeredRequiredCount === 4
-                      ? 'bg-emerald-50 text-emerald-700 border-emerald-300 font-bold'
-                      : 'bg-amber-50 text-amber-800 border-amber-200 font-semibold'
-                  }`}
-                >
-                  {answeredRequiredCount}/4 Answered
-                </span>
-              </Tooltip>
+                {answeredRequiredCount}/4 Answered
+              </span>
             </div>
-            <h2 className="font-hanken text-title-md font-bold text-primary tracking-tight">
+            <h2 className="font-hanken text-title-md font-bold text-primary">
               {selectedCafe.name}
             </h2>
-            <p className="font-sans text-[12px] text-secondary mt-0.5">
-              Share your lived experience—your answers also help the shop owners know what to launch next.
+            <p className="font-sans text-xs text-secondary mt-0.5">
+              Curate your visit and share feedback with the shop.
             </p>
           </div>
 
@@ -860,15 +905,9 @@ export function CafeCurationDrawer({
                     isQ1Answered ? 'text-emerald-700' : 'text-primary'
                   }`}
                 />
-                <span className="font-mono text-[11px] uppercase tracking-wider text-primary font-bold truncate">
+                <span className="font-sans text-xs font-semibold text-primary truncate">
                   Craft &amp; Barista Company
                 </span>
-                <Tooltip
-                  position="bottom"
-                  content="How did the coffee quality and the team's hospitality feel during your visit?"
-                >
-                  <HelpCircle className="w-3.5 h-3.5 text-secondary shrink-0" />
-                </Tooltip>
               </div>
 
               <div className="flex items-center gap-2 shrink-0">
@@ -957,15 +996,9 @@ export function CafeCurationDrawer({
                     isQ2Answered ? 'text-emerald-700' : 'text-primary'
                   }`}
                 />
-                <span className="font-mono text-[11px] uppercase tracking-wider text-primary font-bold truncate">
+                <span className="font-sans text-xs font-semibold text-primary truncate">
                   How You Used the Space
                 </span>
-                <Tooltip
-                  position="bottom"
-                  content="Did you come here to do deep laptop work, a quick task, or to unplug and hang out?"
-                >
-                  <HelpCircle className="w-3.5 h-3.5 text-secondary shrink-0" />
-                </Tooltip>
               </div>
 
               <div className="flex items-center gap-2 shrink-0">
@@ -1053,15 +1086,9 @@ export function CafeCurationDrawer({
                     isQ3Answered ? 'text-emerald-700' : 'text-primary'
                   }`}
                 />
-                <span className="font-mono text-[11px] uppercase tracking-wider text-primary font-bold truncate">
+                <span className="font-sans text-xs font-semibold text-primary truncate">
                   Uniqueness &amp; Concept
                 </span>
-                <Tooltip
-                  position="bottom"
-                  content="What makes this cafe unique? e.g. Coffee by day & bar by night, carwash + coffee, or warm barista company."
-                >
-                  <HelpCircle className="w-3.5 h-3.5 text-secondary shrink-0" />
-                </Tooltip>
               </div>
 
               <div className="flex items-center gap-2 shrink-0">
@@ -1157,15 +1184,9 @@ export function CafeCurationDrawer({
                     isQ4Answered ? 'text-emerald-700' : 'text-primary'
                   }`}
                 />
-                <span className="font-mono text-[11px] uppercase tracking-wider text-primary font-bold truncate">
+                <span className="font-sans text-xs font-semibold text-primary truncate">
                   What Should They Do Next?
                 </span>
-                <Tooltip
-                  position="bottom"
-                  content="Sent directly to the shop's Owner Studio! Tell them what events, mobile carts, or gimmicks would fit them best."
-                >
-                  <HelpCircle className="w-3.5 h-3.5 text-secondary shrink-0" />
-                </Tooltip>
               </div>
 
               <div className="flex items-center gap-2 shrink-0">
@@ -1276,16 +1297,10 @@ export function CafeCurationDrawer({
                     isQ5Answered ? 'text-emerald-700' : 'text-primary'
                   }`}
                 />
-                <span className="font-mono text-[11px] uppercase tracking-wider text-primary font-bold truncate">
+                <span className="font-sans text-xs font-semibold text-primary truncate">
                   Lived Story{' '}
                   <span className="text-secondary font-normal">(Optional)</span>
                 </span>
-                <Tooltip
-                  position="bottom"
-                  content="Tap a quick sentence below or write why you love hanging out here."
-                >
-                  <HelpCircle className="w-3.5 h-3.5 text-secondary shrink-0" />
-                </Tooltip>
               </div>
 
               <div className="flex items-center gap-2 shrink-0">

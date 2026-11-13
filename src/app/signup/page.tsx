@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Eye, EyeOff, LogIn, Smartphone } from 'lucide-react'
+import { Eye, EyeOff } from 'lucide-react'
 import PageShell from '@/components/PageShell'
 import { supabase } from '@/lib/supabase'
 import { useCafes } from '@/hooks/useCafes'
@@ -91,13 +91,13 @@ export default function SignupPage() {
           )}
 
           {/* Form */}
-          <form onSubmit={handleSubmit} className="flex flex-col gap-5 mt-4">
+          <form onSubmit={handleSubmit} className="flex flex-col gap-5 mt-2">
             <div className="flex flex-col gap-1.5 group">
-              <label className="font-mono text-label-caps text-secondary uppercase tracking-widest group-focus-within:text-primary transition-colors" htmlFor="name">
+              <label className="font-mono text-label-caps text-secondary uppercase tracking-wider group-focus-within:text-primary transition-colors" htmlFor="name">
                 Full Name
               </label>
               <input 
-                className="w-full bg-canvas-white border border-border-subtle px-4 py-3 font-sans text-body-sm text-primary placeholder:text-secondary focus:outline-none focus:border-primary focus:ring-0 transition-colors rounded-none appearance-none" 
+                className="archival-input" 
                 id="name" 
                 name="name" 
                 placeholder="John Doe" 
@@ -109,11 +109,11 @@ export default function SignupPage() {
             </div>
             
             <div className="flex flex-col gap-1.5 group">
-              <label className="font-mono text-label-caps text-secondary uppercase tracking-widest group-focus-within:text-primary transition-colors" htmlFor="email">
+              <label className="font-mono text-label-caps text-secondary uppercase tracking-wider group-focus-within:text-primary transition-colors" htmlFor="email">
                 Email Address
               </label>
               <input 
-                className="w-full bg-canvas-white border border-border-subtle px-4 py-3 font-sans text-body-sm text-primary placeholder:text-secondary focus:outline-none focus:border-primary focus:ring-0 transition-colors rounded-none appearance-none" 
+                className="archival-input" 
                 id="email" 
                 name="email" 
                 placeholder="hello@example.com" 
@@ -125,12 +125,12 @@ export default function SignupPage() {
             </div>
             
             <div className="flex flex-col gap-1.5 group">
-              <label className="font-mono text-label-caps text-secondary uppercase tracking-widest group-focus-within:text-primary transition-colors" htmlFor="password">
+              <label className="font-mono text-label-caps text-secondary uppercase tracking-wider group-focus-within:text-primary transition-colors" htmlFor="password">
                 Password
               </label>
               <div className="relative">
                 <input 
-                  className="w-full bg-canvas-white border border-border-subtle px-4 py-3 font-sans text-body-sm text-primary placeholder:text-secondary focus:outline-none focus:border-primary focus:ring-0 transition-colors rounded-none appearance-none pr-10" 
+                  className="archival-input pr-10" 
                   id="password" 
                   name="password" 
                   placeholder="••••••••" 
@@ -152,37 +152,37 @@ export default function SignupPage() {
 
             {/* Role dropdown */}
             <div className="flex flex-col gap-1.5 group">
-              <label className="font-mono text-label-caps text-secondary uppercase tracking-widest group-focus-within:text-primary transition-colors" htmlFor="role">
-                Account Role
+              <label className="font-mono text-label-caps text-secondary uppercase tracking-wider group-focus-within:text-primary transition-colors" htmlFor="role">
+                Account Type
               </label>
               <select
                 id="role"
                 name="role"
-                className="w-full bg-canvas-white border border-border-subtle px-4 py-3 font-sans text-body-sm text-primary focus:outline-none focus:border-primary focus:ring-0 transition-colors rounded-none cursor-pointer"
+                className="archival-input cursor-pointer"
                 value={role}
                 onChange={(e) => {
                   setRole(e.target.value as any)
                   setManagedCafeId('')
                 }}
               >
-                <option value="user">Average Joe (Regular User)</option>
-                <option value="managers">Manager (Shop Staff)</option>
-                <option value="admin">Admin (Shop Owner)</option>
-                <option value="superadmin">Super Admin (Full Access)</option>
+                <option value="user">Community Member &amp; Curator</option>
+                <option value="managers">Shop Manager / Staff</option>
+                <option value="admin">Coffee Shop Owner</option>
+                <option value="superadmin">Platform Administrator</option>
               </select>
             </div>
 
             {/* Assigned Cafe dropdown (only for admin & managers) */}
             {(role === 'admin' || role === 'managers') && (
               <div className="flex flex-col gap-1.5 group animate-fade-in-up">
-                <label className="font-mono text-label-caps text-secondary uppercase tracking-widest group-focus-within:text-primary transition-colors" htmlFor="managed-cafe">
+                <label className="font-mono text-label-caps text-secondary uppercase tracking-wider group-focus-within:text-primary transition-colors" htmlFor="managed-cafe">
                   Assigned Coffee Shop
                 </label>
                 <select
                   id="managed-cafe"
                   name="managed_cafe"
                   required
-                  className="w-full bg-canvas-white border border-border-subtle px-4 py-3 font-sans text-body-sm text-primary focus:outline-none focus:border-primary focus:ring-0 transition-colors rounded-none cursor-pointer"
+                  className="archival-input cursor-pointer"
                   value={managedCafeId}
                   onChange={(e) => setManagedCafeId(e.target.value)}
                 >
@@ -194,7 +194,7 @@ export default function SignupPage() {
               </div>
             )}
             
-            <div className="flex items-start gap-3 mt-2">
+            <div className="flex items-start gap-3 mt-1">
               <input 
                 className="mt-1 w-4 h-4 bg-canvas-white border border-border-subtle checked:bg-primary checked:border-primary focus:ring-0 rounded-none cursor-pointer text-primary" 
                 id="terms" 
@@ -210,43 +210,18 @@ export default function SignupPage() {
             </div>
             
             <button 
-              className="mt-4 w-full bg-primary text-canvas-white font-mono text-label-caps uppercase tracking-widest py-3.5 hover:bg-tertiary-container transition-colors duration-200 border border-primary disabled:opacity-50" 
+              className="archival-btn-primary mt-2 disabled:opacity-50" 
               type="submit"
               disabled={loading}
             >
               {loading ? 'Creating...' : 'Create Account'}
             </button>
           </form>
-          
-          {/* Divider */}
-          <div className="flex items-center gap-4 py-2 mt-2">
-            <div className="flex-grow h-px bg-border-subtle"></div>
-            <span className="font-mono text-[9px] text-secondary uppercase tracking-widest">Or continue with</span>
-            <div className="flex-grow h-px bg-border-subtle"></div>
-          </div>
-          
-          {/* Social Logins */}
-          <div className="flex gap-4">
-            <button 
-              className="flex-1 bg-canvas-white border border-border-subtle text-primary font-mono text-label-caps uppercase tracking-widest py-3 hover:bg-surface-alt hover:border-primary transition-all duration-200 flex items-center justify-center gap-2" 
-              type="button"
-            >
-              <LogIn className="w-4 h-4" />
-              Google
-            </button>
-            <button 
-              className="flex-grow flex-1 bg-canvas-white border border-border-subtle text-primary font-mono text-label-caps uppercase tracking-widest py-3 hover:bg-surface-alt hover:border-primary transition-all duration-200 flex items-center justify-center gap-2" 
-              type="button"
-            >
-              <Smartphone className="w-4 h-4" />
-              Apple
-            </button>
-          </div>
 
-          <div className="text-center font-sans text-body-sm text-secondary mt-2">
+          <div className="text-center font-sans text-body-sm text-secondary pt-2 border-t border-border-subtle">
             Already have an account?{' '}
             <Link className="text-primary hover:underline font-medium" href="/login">
-              Login here
+              Sign in here
             </Link>.
           </div>
         </div>

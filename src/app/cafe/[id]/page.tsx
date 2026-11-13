@@ -4,7 +4,7 @@ import { use, useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import dynamic from 'next/dynamic'
-import { Loader2, AlertTriangle, ArrowLeft, Bookmark, Megaphone, Sparkles, Calendar } from 'lucide-react'
+import { Loader2, AlertTriangle, ArrowLeft, Bookmark, Sparkles, Plus } from 'lucide-react'
 import PageShell from '@/components/PageShell'
 import ImageGallery from '@/components/ImageGallery'
 import CafeDetailSidebar from '@/components/CafeDetailSidebar'
@@ -12,7 +12,8 @@ import AuthModal from '@/components/AuthModal'
 import { getCafeFromSupabaseById, getSocials, Cafe } from '@/lib/data'
 import { useAuth } from '@/hooks/useAuth'
 import { useBookmarks } from '@/hooks/useBookmarks'
-import { getShopGimmicks, getShopIdentity, ShopGimmick, ShopIdentity } from '@/lib/ownerStudio'
+import { getShopGimmicks, getShopIdentity, addShopGimmick, ShopGimmick, ShopIdentity } from '@/lib/ownerStudio'
+import { getNewsArticles, addNewsArticle, canUserModerateCafe, NewsArticle } from '@/lib/adminStore'
 
 // Dynamically load Leaflet Map component
 const LeafletMap = dynamic(() => import('@/components/MapComponent'), {
@@ -29,13 +30,18 @@ export default function CafeProfilePage({ params }: { params: Promise<{ id: stri
   const { id } = use(params)
   const router = useRouter()
   
-  const { user } = useAuth()
+  const { user, role } = useAuth()
   const { loadBookmarks, toggleBookmark, isBookmarked, addBookmarkIfMissing } = useBookmarks(user?.id || null)
 
   const [cafe, setCafe] = useState<Cafe | null>(null)
   const [gimmicks, setGimmicks] = useState<ShopGimmick[]>([])
+  const [cafeNews, setCafeNews] = useState<NewsArticle[]>([])
   const [identity, setIdentity] = useState<ShopIdentity | null>(null)
   const [mounted, setMounted] = useState(false)
+  const [showAddForm, setShowAddForm] = useState(false)
+  const [postType, setPostType] = useState<'event' | 'news'>('event')
+  const [postTitle, setPostTitle] = useState('')
+  const [postDesc, setPostDesc] = useState('')
 
   // Auth Modal State
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false)
@@ -48,6 +54,7 @@ export default function CafeProfilePage({ params }: { params: Promise<{ id: stri
       if (found) {
         setCafe(found)
         setGimmicks(getShopGimmicks(found.id))
+        setCafeNews(getNewsArticles().filter((a) => a.cafeId === found.id))
         setIdentity(getShopIdentity(found.id))
       }
       setMounted(true)
@@ -125,30 +132,33 @@ export default function CafeProfilePage({ params }: { params: Promise<{ id: stri
   const bookmarked = isBookmarked(cafe.id)
 
   return (
-    <PageShell className="bg-[#EDEDED]">
+    <PageShell className="bg-surface-alt">
       <main className="flex-grow flex flex-col items-center p-4 md:p-grid-margin max-w-6xl w-full mx-auto gap-4">
         
-        {/* Mobile Header Back Button */}
-        <div className="w-full md:hidden flex items-center gap-2">
+        {/* Back Button */}
+        <div className="w-full flex items-center gap-2">
           <button 
             onClick={() => router.back()}
-            className="flex items-center gap-1 font-mono text-label-caps text-secondary hover:text-primary transition-colors"
+            className="flex items-center gap-1.5 font-mono text-label-caps uppercase text-secondary hover:text-primary transition-colors cursor-pointer"
           >
             <ArrowLeft className="w-4 h-4" />
-            Back
+            <span>Back</span>
           </button>
         </div>
 
         {/* Image Gallery */}
         <ImageGallery images={images} altPrefix={cafe.name} />
 
-        {/* Title & Mobile Actions Strip */}
-        <div className="w-full bg-canvas-white border border-border-subtle p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 shadow-sm">
+        {/* Title & Actions Strip */}
+        <div className="w-full bg-canvas-white border border-border-subtle p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
-            <h1 className="font-hanken text-[32px] md:text-headline-lg font-bold text-primary uppercase tracking-tighter leading-none">
+            <h1 className="font-hanken text-headline-lg-mobile md:text-headline-lg font-bold text-primary tracking-tight">
               {cafe.name}
             </h1>
-            <p className="font-mono text-label-caps text-secondary mt-1">{cafe.location}</p>
+            <p className="font-sans text-body-sm text-secondary mt-1">
+              {cafe.neighborhood || cafe.location}
+              {cafe.hours ? ` · ${cafe.hours}` : ''}
+            </p>
           </div>
           
           {user && (
@@ -188,47 +198,134 @@ export default function CafeProfilePage({ params }: { params: Promise<{ id: stri
               </div>
             </article>
 
-            {/* Shop Happenings & Gimmicks Section */}
-            {gimmicks.length > 0 && (
-              <section className="p-6 md:p-stack-lg border-b border-border-subtle bg-amber-50/30">
+            {/* Simplified Live Shop Events & News Section */}
+            {(gimmicks.length > 0 || cafeNews.length > 0 || canUserModerateCafe(user?.email, role, cafe.id)) && (
+              <section className="p-6 md:p-stack-lg border-b border-border-subtle bg-amber-50/20">
                 <div className="flex items-center justify-between mb-4">
-                  <h2 className="font-hanken text-title-md text-primary font-semibold uppercase tracking-wider flex items-center gap-2">
-                    <Megaphone className="w-5 h-5 text-amber-700" />
-                    <span>Shop Happenings &amp; Gimmicks</span>
+                  <h2 className="font-hanken text-title-md text-primary font-bold">
+                    Live Shop Events &amp; News
                   </h2>
-                  <Link
-                    href="/studio"
-                    className="font-mono text-[10px] uppercase tracking-wider text-amber-900 underline"
-                  >
-                    Manage in Shop Studio →
-                  </Link>
+                  {canUserModerateCafe(user?.email, role, cafe.id) && (
+                    <button
+                      type="button"
+                      onClick={() => setShowAddForm(!showAddForm)}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-primary text-canvas-white font-sans text-xs font-medium hover:opacity-90 cursor-pointer"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                      {showAddForm ? 'Cancel' : 'Add News / Live Event'}
+                    </button>
+                  )}
                 </div>
+
+                {showAddForm && canUserModerateCafe(user?.email, role, cafe.id) && (
+                  <form
+                    onSubmit={(e) => {
+                      e.preventDefault()
+                      if (!postTitle.trim() || !postDesc.trim()) return
+                      if (postType === 'event') {
+                        addShopGimmick({
+                          cafeId: cafe.id,
+                          title: postTitle.trim(),
+                          category: 'Community Pop-Up',
+                          schedule: 'Live Event',
+                          description: postDesc.trim(),
+                        })
+                      } else {
+                        addNewsArticle({
+                          title: postTitle.trim(),
+                          subtitle: postDesc.trim(),
+                          category: 'Promo & Perk',
+                          locationArea: 'Corrales & Lifestyle District',
+                          cafeId: cafe.id,
+                          cafeName: cafe.name,
+                          author: `${cafe.name} Moderator`,
+                          readTime: '1 min read',
+                          image: cafe.image,
+                          body: [postDesc.trim()],
+                        })
+                      }
+                      setGimmicks(getShopGimmicks(cafe.id))
+                      setCafeNews(getNewsArticles().filter((a) => a.cafeId === cafe.id))
+                      setPostTitle('')
+                      setPostDesc('')
+                      setShowAddForm(false)
+                    }}
+                    className="mb-4 p-4 bg-canvas-white border border-border-subtle space-y-3"
+                  >
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setPostType('event')}
+                        className={`px-3 py-1.5 text-xs font-sans font-medium border cursor-pointer ${
+                          postType === 'event'
+                            ? 'bg-primary text-canvas-white border-primary'
+                            : 'bg-surface-alt text-secondary border-border-subtle'
+                        }`}
+                      >
+                        Live Event
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setPostType('news')}
+                        className={`px-3 py-1.5 text-xs font-sans font-medium border cursor-pointer ${
+                          postType === 'news'
+                            ? 'bg-primary text-canvas-white border-primary'
+                            : 'bg-surface-alt text-secondary border-border-subtle'
+                        }`}
+                      >
+                        Cafe News / Promo
+                      </button>
+                    </div>
+                    <input
+                      type="text"
+                      required
+                      value={postTitle}
+                      onChange={(e) => setPostTitle(e.target.value)}
+                      placeholder="Heading"
+                      className="w-full px-3 py-2 border border-border-subtle font-sans text-sm text-primary focus:outline-none focus:border-primary"
+                    />
+                    <textarea
+                      rows={2}
+                      required
+                      value={postDesc}
+                      onChange={(e) => setPostDesc(e.target.value)}
+                      placeholder="Short description..."
+                      className="w-full px-3 py-2 border border-border-subtle font-sans text-sm text-primary focus:outline-none focus:border-primary"
+                    />
+                    <button
+                      type="submit"
+                      className="px-4 py-2 bg-emerald-700 text-white font-sans text-xs font-semibold hover:bg-emerald-800 cursor-pointer"
+                    >
+                      Publish
+                    </button>
+                  </form>
+                )}
+
                 <div className="grid grid-cols-1 gap-3">
                   {gimmicks.map((g) => (
                     <div
                       key={g.id}
-                      className="p-4 bg-canvas-white border border-amber-200 border-l-4 border-l-amber-600 space-y-1.5"
+                      className="p-4 bg-canvas-white border border-border-subtle space-y-1"
                     >
-                      <div className="flex flex-wrap items-center justify-between gap-2">
-                        <span className="px-2 py-0.5 bg-amber-100 text-amber-900 font-mono text-[9px] uppercase font-bold">
-                          {g.category}
-                        </span>
-                        <span className="font-mono text-[10px] text-secondary flex items-center gap-1">
-                          <Calendar className="w-3 h-3" />
-                          {g.schedule}
-                        </span>
-                      </div>
-                      <h3 className="font-hanken text-body-lg font-bold text-primary">
+                      <h3 className="font-hanken text-base font-bold text-primary">
                         {g.title}
                       </h3>
-                      <p className="font-sans text-body-sm text-secondary leading-relaxed">
+                      <p className="font-sans text-sm text-secondary leading-relaxed">
                         {g.description}
                       </p>
-                      {g.perkOrHighlight && (
-                        <p className="inline-block font-mono text-[10px] text-emerald-800 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5">
-                          ★ {g.perkOrHighlight}
-                        </p>
-                      )}
+                    </div>
+                  ))}
+                  {cafeNews.map((n) => (
+                    <div
+                      key={n.id}
+                      className="p-4 bg-canvas-white border border-border-subtle space-y-1"
+                    >
+                      <h3 className="font-hanken text-base font-bold text-primary">
+                        {n.title}
+                      </h3>
+                      <p className="font-sans text-sm text-secondary leading-relaxed">
+                        {n.subtitle}
+                      </p>
                     </div>
                   ))}
                 </div>

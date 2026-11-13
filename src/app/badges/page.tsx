@@ -154,18 +154,17 @@ export default function BadgesPage() {
     <PageShell>
       <main className="flex-grow flex flex-col">
         {/* Hero Header */}
-        <section className="py-12 md:py-16 px-6 md:px-12 bg-surface border-b border-border-subtle">
+        <section className="py-10 md:py-14 px-6 md:px-12 bg-surface border-b border-border-subtle">
           <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-end justify-between gap-8">
             <div>
-              <div className="inline-flex items-center gap-2 px-2.5 py-1 bg-canvas-white border border-border-subtle font-mono text-[10px] uppercase tracking-widest text-secondary mb-3">
-                <Award className="w-3.5 h-3.5 text-primary" />
-                <span>Curator Milestones &amp; Achievements</span>
-              </div>
-              <h1 className="font-hanken text-[40px] md:text-display-lg font-extrabold text-primary uppercase tracking-tighter leading-none">
-                BADGES
+              <span className="font-mono text-label-caps uppercase text-secondary block mb-2">
+                Curator Milestones
+              </span>
+              <h1 className="font-hanken text-headline-lg md:text-display-lg font-extrabold text-primary tracking-tight">
+                Badges &amp; Achievements
               </h1>
-              <p className="font-sans text-body-lg text-secondary max-w-xl mt-3">
-                Earn badges as you explore coffee shops, share workspace vibes, and build your personal coffee directory. Tap any badge to inspect its full details and requirements.
+              <p className="font-sans text-body-lg text-secondary max-w-xl mt-2">
+                Earn badges as you explore coffee shops, share workspace vibes, and build your personal coffee directory.
               </p>
             </div>
 
@@ -211,7 +210,7 @@ export default function BadgesPage() {
                   key={cat}
                   type="button"
                   onClick={() => setSelectedFilter(cat)}
-                  className={`px-3.5 py-1.5 font-mono text-[10px] uppercase tracking-wider border transition-colors ${
+                  className={`px-3.5 py-1.5 font-mono text-[11px] uppercase tracking-wider border transition-colors ${
                     active
                       ? 'bg-primary text-canvas-white border-primary'
                       : 'bg-surface-alt text-secondary border-border-subtle hover:text-primary hover:border-primary'
@@ -257,10 +256,10 @@ export default function BadgesPage() {
                     }`}
                   >
                     <div>
-                      {/* Top Row: Icon + Status & Tier */}
+                      {/* Top Row: Icon + Status */}
                       <div className="flex items-start justify-between gap-3 mb-4">
                         <div
-                          className={`w-12 h-12 flex items-center justify-center border transition-colors ${
+                          className={`w-11 h-11 flex items-center justify-center border transition-colors ${
                             badge.unlocked
                               ? 'bg-emerald-600 text-white border-emerald-600'
                               : badge.current > 0
@@ -271,36 +270,31 @@ export default function BadgesPage() {
                           <BadgeIcon name={badge.iconName} className="w-5 h-5" />
                         </div>
 
-                        <div className="flex flex-col items-end gap-1">
-                          <span
-                            className={`inline-flex items-center gap-1 px-2 py-0.5 font-mono text-[9px] uppercase tracking-wider border ${
-                              badge.unlocked
-                                ? 'bg-emerald-50 text-emerald-700 border-emerald-300 font-bold'
-                                : badge.current > 0
-                                ? 'bg-amber-50 text-amber-800 border-amber-200 font-semibold'
-                                : 'bg-surface-alt text-secondary border-border-subtle'
-                            }`}
-                          >
-                            {badge.unlocked ? (
-                              <>
-                                <Check className="w-2.5 h-2.5" />
-                                <span>Unlocked</span>
-                              </>
-                            ) : (
-                              <>
-                                <Lock className="w-2.5 h-2.5" />
-                                <span>In Progress</span>
-                              </>
-                            )}
-                          </span>
-                          <span className="font-mono text-[9px] uppercase tracking-widest text-secondary">
-                            {badge.tier} · <span className="text-amber-700 font-semibold">+{badge.rewardPoints} XP</span>
-                          </span>
-                        </div>
+                        <span
+                          className={`inline-flex items-center gap-1 px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider border ${
+                            badge.unlocked
+                              ? 'bg-emerald-50 text-emerald-700 border-emerald-300 font-bold'
+                              : badge.current > 0
+                              ? 'bg-amber-50 text-amber-800 border-amber-200 font-semibold'
+                              : 'bg-surface-alt text-secondary border-border-subtle'
+                          }`}
+                        >
+                          {badge.unlocked ? (
+                            <>
+                              <Check className="w-2.5 h-2.5" />
+                              <span>Unlocked</span>
+                            </>
+                          ) : (
+                            <>
+                              <Lock className="w-2.5 h-2.5" />
+                              <span>+{badge.rewardPoints} XP</span>
+                            </>
+                          )}
+                        </span>
                       </div>
 
                       {/* Title & Subtitle */}
-                      <span className="block font-mono text-[9px] uppercase tracking-widest text-secondary mb-1">
+                      <span className="block font-mono text-[10px] uppercase tracking-wider text-secondary mb-1">
                         {badge.category}
                       </span>
                       <h2 className="font-hanken text-title-md font-bold text-primary group-hover:underline decoration-1 underline-offset-4">
@@ -313,8 +307,8 @@ export default function BadgesPage() {
 
                     {/* Progress Indicator */}
                     <div className="mt-5 pt-3 border-t border-border-subtle">
-                      <div className="flex items-center justify-between font-mono text-[10px] uppercase mb-1.5">
-                        <span className="text-secondary">Progress</span>
+                      <div className="flex items-center justify-between font-mono text-[11px] mb-1.5">
+                        <span className="text-secondary uppercase">Progress</span>
                         <span
                           className={`font-bold ${
                             badge.unlocked
@@ -324,10 +318,10 @@ export default function BadgesPage() {
                               : 'text-primary'
                           }`}
                         >
-                          {badge.current} / {badge.target} ({badge.percentage}%)
+                          {badge.current} / {badge.target}
                         </span>
                       </div>
-                      <div className="w-full h-2 bg-surface-alt border border-border-subtle overflow-hidden">
+                      <div className="w-full h-1.5 bg-surface-alt border border-border-subtle overflow-hidden">
                         <div
                           className={`h-full transition-all duration-500 ${
                             badge.unlocked ? 'bg-emerald-600' : 'bg-amber-500'

@@ -23,6 +23,7 @@ interface MapComponentProps {
   isLoggedIn?: boolean
   isBookmarked?: (cafeId: string) => boolean
   onToggleBookmark?: (cafeId: string) => void
+  activeEventCafeIds?: string[]
 }
 
 // Recenter component when selectedCafe or mapCenter changes
@@ -62,7 +63,7 @@ function MapController({
 
   useEffect(() => {
     if (mapCenter) {
-      map.setView(mapCenter, 14, { animate: true })
+      map.setView(mapCenter, Math.max(map.getZoom(), 13), { animate: true })
     }
   }, [mapCenter, map])
 
@@ -88,12 +89,29 @@ const createAnimatedCafeIcon = (
   isRoastery: boolean,
   isOpen: boolean,
   isSelected: boolean,
-  size: number
+  size: number,
+  hasLiveEvent: boolean = false
 ) => {
   const bgColor = isSelected ? '#111111' : isOpen ? '#222222' : '#555555'
-  const borderColor = isSelected ? '#222222' : '#FFFFFF'
+  const borderColor = isSelected ? '#222222' : hasLiveEvent ? '#F59E0B' : '#FFFFFF'
   const innerSize = Math.round(size * 0.58)
   const animClass = isOpen ? (isRoastery ? 'marker-roasting-bean' : 'marker-steaming-cup') : ''
+
+  const liveBadgeHtml = hasLiveEvent
+    ? `
+      <div style="
+        position:absolute;
+        top:-3px;
+        right:-3px;
+        width:12px;
+        height:12px;
+        border-radius:9999px;
+        background:#F59E0B;
+        border:2px solid #FFFFFF;
+        box-shadow:0 1px 4px rgba(0,0,0,0.35);
+      " title="Has Active Promo or Live Event"></div>
+    `
+    : ''
 
   // Roasting waves (for open roasteries) or rising steam wisps (for open cafes)
   const topEffectHtml = isOpen
@@ -169,12 +187,45 @@ const createAnimatedCafeIcon = (
         ${topEffectHtml}
         ${iconSvg}
         ${closedXOverlay}
+        ${liveBadgeHtml}
       </div>
     `,
     iconSize: [size, size],
     iconAnchor: [size / 2, size / 2],
   })
 }
+
+const userLocationIcon = L.divIcon({
+  className: 'user-location-marker',
+  html: `
+    <div style="
+      position: relative;
+      width: 20px;
+      height: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    ">
+      <span style="
+        position: absolute;
+        inset: -6px;
+        border-radius: 9999px;
+        background: rgba(16, 185, 129, 0.25);
+        border: 1.5px solid rgba(16, 185, 129, 0.6);
+      "></span>
+      <span style="
+        width: 12px;
+        height: 12px;
+        border-radius: 9999px;
+        background: #059669;
+        border: 2.5px solid #FFFFFF;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.35);
+      "></span>
+    </div>
+  `,
+  iconSize: [20, 20],
+  iconAnchor: [10, 10],
+})
 
 export default function MapComponent({
   cafes,
@@ -186,6 +237,7 @@ export default function MapComponent({
   isLoggedIn = false,
   isBookmarked,
   onToggleBookmark,
+  activeEventCafeIds = [],
 }: MapComponentProps) {
   const [zoom, setZoom] = useState(14)
   const [hoveredCafe, setHoveredCafe] = useState<Cafe | null>(null)
@@ -378,13 +430,23 @@ export default function MapComponent({
           maxZoom={18}
         />
 
+        {userLocation && (
+          <Marker
+            position={userLocation}
+            icon={userLocationIcon}
+            interactive={false}
+          />
+        )}
+
         {cafes.map((cafe) => {
           const coords = getCafeCoordinates(cafe)
           const isSelected = selectedCafe?.id === cafe.id
           const isOpen = cafe.status === 'Open'
           const isRoastery = isCafeRoastery(cafe)
           const size = getMarkerSizeForZoom(zoom, isSelected)
-          const icon = createAnimatedCafeIcon(isRoastery, isOpen, isSelected, size)
+          const hasLiveEvent =
+            activeEventCafeIds.includes(cafe.id) || Boolean(cafe.promos && cafe.promos.trim())
+          const icon = createAnimatedCafeIcon(isRoastery, isOpen, isSelected, size, hasLiveEvent)
 
           return (
             <Marker

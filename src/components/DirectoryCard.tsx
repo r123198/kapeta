@@ -34,14 +34,14 @@ export default function DirectoryCard({
       }}
     >
       {/* Save/Bookmark Button Overlay */}
-      <div className="absolute top-4 right-4 z-20 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+      <div className="absolute top-3 right-3 z-20 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-200">
         <Tooltip content={isBookmarked ? 'Remove from Collection' : 'Save to Collection'}>
           <button
             onClick={(e) => onToggleBookmark(cafe.id, e)}
-            className="bg-canvas-white text-primary p-2 border border-border-subtle hover:bg-surface-alt transition-colors duration-150 shadow-sm flex items-center justify-center"
+            className="bg-canvas-white/95 text-primary p-2 border border-border-subtle hover:bg-surface-alt transition-colors duration-150 shadow-sm flex items-center justify-center"
             aria-label="Save workspace"
           >
-            <Bookmark className={`w-[18px] h-[18px] ${isBookmarked ? 'fill-primary text-primary' : 'text-secondary'}`} />
+            <Bookmark className={`w-4 h-4 ${isBookmarked ? 'fill-primary text-primary' : 'text-secondary'}`} />
           </button>
         </Tooltip>
       </div>
@@ -68,104 +68,76 @@ export default function DirectoryCard({
       </div>
 
       {/* Card Content Area */}
-      <div className="p-5 flex flex-col shrink-0 bg-canvas-white">
-        <h2 className="font-hanken text-title-md text-primary group-hover:underline decoration-1 underline-offset-4">
-          <Link href={`/cafe/${cafe.id}`}>{cafe.name}</Link>
-        </h2>
+      <div className="p-5 flex flex-col flex-grow justify-between bg-canvas-white">
+        <div>
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <h2 className="font-hanken text-title-md font-bold text-primary group-hover:underline decoration-1 underline-offset-4">
+                <Link href={`/cafe/${cafe.id}`}>{cafe.name}</Link>
+              </h2>
+              <p className="font-sans text-body-sm text-secondary mt-0.5">
+                {cafe.neighborhood || cafe.location}
+              </p>
+            </div>
+            <div className="px-2 py-1 bg-primary text-on-primary font-mono text-xs font-bold shrink-0">
+              {cafe.stats.total.toFixed(1)}
+            </div>
+          </div>
 
-        {/* User's Curated Highlights (Always Visible when curated) */}
-        {curation && (
-          <div className="mt-3 pt-3 border-t border-border-subtle space-y-2">
-            <div className="flex flex-wrap gap-1.5">
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-emerald-50 border border-emerald-300 text-emerald-800 font-mono text-[9px] font-semibold uppercase tracking-wider">
-                <Coffee className="w-2.5 h-2.5 text-emerald-700" />
-                {curation.coffeeQuality}
-              </span>
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-amber-50 border border-amber-200 text-amber-900 font-mono text-[9px] font-medium uppercase tracking-wider">
-                <Laptop className="w-2.5 h-2.5 text-amber-700" />
-                {curation.workFriendly}
-              </span>
-              {curation.vibes.slice(0, 2).map((vibe) => (
-                <span
-                  key={vibe}
-                  className="px-2 py-0.5 bg-surface-alt border border-border-subtle text-secondary font-mono text-[9px] uppercase tracking-wider"
-                >
-                  {vibe}
+          {/* User's Curated Highlights */}
+          {curation ? (
+            <div className="mt-4 pt-3.5 border-t border-border-subtle space-y-2.5">
+              <div className="flex flex-wrap gap-1.5">
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-emerald-50 border border-emerald-300 text-emerald-800 font-mono text-[10px] font-medium uppercase tracking-wider">
+                  <Coffee className="w-3 h-3 text-emerald-700" />
+                  {curation.coffeeQuality}
                 </span>
-              ))}
-            </div>
-
-            {curation.mustOrder && (
-              <p className="font-mono text-[10px] text-primary">
-                <span className="text-secondary uppercase">Go-to order:</span> {curation.mustOrder}
-              </p>
-            )}
-
-            {curation.experienceNote && (
-              <p className="font-sans text-body-sm text-secondary italic line-clamp-2">
-                &ldquo;{curation.experienceNote}&rdquo;
-              </p>
-            )}
-          </div>
-        )}
-
-        {/* Collapsible Details (GPU-accelerated slide) */}
-        <div className="grid grid-rows-[0fr] group-hover:grid-rows-[1fr] opacity-0 group-hover:opacity-100 transition-[grid-template-rows,opacity] duration-[400ms] ease-out">
-          <div className="overflow-hidden">
-            {/* Location Block */}
-            <div className="flex justify-between items-center py-3 border-y border-border-subtle mt-4 mb-4">
-              <span className="font-mono text-label-caps text-secondary">Location</span>
-              <span className="font-sans text-body-sm text-primary">{cafe.location}</span>
-            </div>
-
-            {/* Website Block */}
-            <div className="flex justify-between items-center pb-4">
-              <span className="font-mono text-label-caps text-secondary">Website</span>
-              <a
-                className="flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-wider text-primary hover:text-secondary hover:border-primary transition-colors duration-150 border border-border-subtle bg-surface-alt px-3 py-1.5"
-                href={cafe.website.startsWith('http') ? cafe.website : `https://${cafe.website}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={(e) => e.stopPropagation()}
-              >
-                Visit Site
-                <ExternalLink className="w-3.5 h-3.5" />
-              </a>
-            </div>
-
-            {/* Stats Table Block */}
-            <div className="mt-4 pt-4 border-t border-border-subtle">
-              <div className="grid grid-cols-4 border border-border-subtle divide-x divide-border-subtle text-center">
-                <Tooltip content="Taste Score (0-10)">
-                  <div className="p-1.5 flex flex-col justify-center bg-surface-container-lowest cursor-help h-full">
-                    <span className="font-mono text-[9px] tracking-widest text-secondary border-b border-border-subtle pb-1 mb-1">TST</span>
-                    <span className="font-mono text-label-caps text-primary">{cafe.stats.taste.toFixed(1)}</span>
-                  </div>
-                </Tooltip>
-
-                <Tooltip content="Vibe Score (0-10)">
-                  <div className="p-1.5 flex flex-col justify-center bg-surface-container-lowest cursor-help h-full">
-                    <span className="font-mono text-[9px] tracking-widest text-secondary border-b border-border-subtle pb-1 mb-1">VIB</span>
-                    <span className="font-mono text-label-caps text-primary">{cafe.stats.vibe.toFixed(1)}</span>
-                  </div>
-                </Tooltip>
-
-                <Tooltip content="Service Score (0-10)">
-                  <div className="p-1.5 flex flex-col justify-center bg-surface-container-lowest cursor-help h-full">
-                    <span className="font-mono text-[9px] tracking-widest text-secondary border-b border-border-subtle pb-1 mb-1">SRV</span>
-                    <span className="font-mono text-label-caps text-primary">{cafe.stats.service.toFixed(1)}</span>
-                  </div>
-                </Tooltip>
-
-                <Tooltip content="Total Overall Score (0-10)">
-                  <div className="p-1.5 flex flex-col justify-center bg-primary text-on-primary cursor-help h-full">
-                    <span className="font-mono text-[9px] tracking-widest border-b border-on-primary/30 pb-1 mb-1">TOT</span>
-                    <span className="font-mono text-label-caps">{cafe.stats.total.toFixed(1)}</span>
-                  </div>
-                </Tooltip>
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-amber-50 border border-amber-200 text-amber-900 font-mono text-[10px] font-medium uppercase tracking-wider">
+                  <Laptop className="w-3 h-3 text-amber-700" />
+                  {curation.workFriendly}
+                </span>
               </div>
+
+              {curation.mustOrder && (
+                <p className="font-sans text-xs text-primary">
+                  <span className="font-mono text-[10px] text-secondary uppercase tracking-wider mr-1.5">
+                    Order:
+                  </span>
+                  {curation.mustOrder}
+                </p>
+              )}
+
+              {curation.experienceNote && (
+                <p className="font-sans text-body-sm text-secondary italic line-clamp-2">
+                  &ldquo;{curation.experienceNote}&rdquo;
+                </p>
+              )}
             </div>
+          ) : (
+            <p className="font-sans text-body-sm text-secondary mt-3 line-clamp-2">
+              {cafe.review}
+            </p>
+          )}
+        </div>
+
+        {/* Footer Metadata & Action */}
+        <div className="mt-5 pt-3.5 border-t border-border-subtle flex items-center justify-between gap-2">
+          <div className="flex items-center gap-3 font-mono text-[11px] text-secondary">
+            <span>Taste {cafe.stats.taste.toFixed(1)}</span>
+            <span>·</span>
+            <span>Vibe {cafe.stats.vibe.toFixed(1)}</span>
           </div>
+
+          <a
+            className="inline-flex items-center gap-1 font-mono text-[11px] uppercase tracking-wider text-primary hover:underline"
+            href={cafe.website.startsWith('http') ? cafe.website : `https://${cafe.website}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <span>Website</span>
+            <ExternalLink className="w-3 h-3" />
+          </a>
         </div>
       </div>
     </article>
