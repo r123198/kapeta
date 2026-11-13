@@ -4,7 +4,6 @@ import React, { useState, useEffect, useMemo } from 'react'
 import Link from 'next/link'
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
-import Tooltip from '@/components/Tooltip'
 import {
   getCafesFromSupabase,
   insertCafeToSupabase,
@@ -24,11 +23,13 @@ import {
   saveSystemLogs,
   appendSystemLog,
   getNewsArticles,
+  addNewsArticle,
   deleteNewsArticle,
 } from '@/lib/adminStore'
 import {
   ShopGimmick,
   getShopGimmicks,
+  addShopGimmick,
   deleteShopGimmick,
 } from '@/lib/ownerStudio'
 import { supabase } from '@/lib/supabase'
@@ -50,11 +51,9 @@ import {
   Server,
   Database,
   Lock,
-  MapPin,
   X,
   ExternalLink,
   UserPlus,
-  Sparkles,
   Terminal,
 } from 'lucide-react'
 
@@ -132,6 +131,10 @@ export default function AdminPage() {
   // --- Tab 4: News & Gimmicks Moderation State ---
   const [newsList, setNewsList] = useState<NewsArticle[]>([])
   const [gimmicksList, setGimmicksList] = useState<ShopGimmick[]>([])
+  const [postType, setPostType] = useState<'news' | 'event'>('news')
+  const [postCafeId, setPostCafeId] = useState('')
+  const [postTitle, setPostTitle] = useState('')
+  const [postDescription, setPostDescription] = useState('')
 
   // Initial Load
   useEffect(() => {
@@ -607,57 +610,52 @@ export default function AdminPage() {
   )
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#FAF9F6] text-ink">
+    <div className="min-h-screen flex flex-col bg-surface text-primary">
       <Navbar />
 
       {/* Top Admin Command Header */}
-      <header className="bg-white border-b border-border px-4 sm:px-8 py-6">
+      <header className="bg-canvas-white border-b border-border-subtle px-4 sm:px-8 py-6">
         <div className="max-w-[1440px] mx-auto">
-          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-6 border-b border-border">
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-6 border-b border-border-subtle">
             <div>
               <div className="flex items-center gap-2 mb-2">
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 bg-ink text-white font-mono text-[10px] uppercase tracking-widest font-bold">
-                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" /> ADMIN CONTROL CENTER
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 bg-primary text-white font-mono text-[10px] uppercase tracking-widest font-bold">
+                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" /> Admin Control Center
                 </span>
-                <span className="font-mono text-[11px] uppercase tracking-widest text-muted">
+                <span className="font-mono text-[11px] text-secondary">
                   {userEmail} ({profileRole})
                 </span>
-                <Tooltip content="Manage all coffee shops on the map, user accounts & roles, live site error logs, and city news dispatches from one unified command center.">
-                  <span className="inline-flex items-center justify-center w-4 h-4 rounded-full border border-border text-[10px] font-mono text-muted hover:text-ink cursor-help">
-                    ?
-                  </span>
-                </Tooltip>
               </div>
-              <h1 className="text-2xl sm:text-4xl font-bold tracking-tight text-ink">
-                Platform Operations & Monitoring
+              <h1 className="font-hanken text-headline-lg-mobile sm:text-headline-lg font-bold text-primary">
+                Platform Operations
               </h1>
             </div>
 
             {/* Quick System Telemetry Pills */}
             <div className="flex flex-wrap items-center gap-2.5">
-              <div className="px-3 py-2 bg-[#FAF9F6] border border-border flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              <div className="px-3 py-2 bg-surface-alt border border-border-subtle flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-emerald-500" />
                 <div className="font-mono text-[10px] uppercase tracking-wider">
-                  <div className="text-muted">DATA STORE</div>
-                  <div className="font-bold text-ink">
-                    {dbStatus === 'Connected' ? 'Supabase + Local Sync' : 'Hybrid Store Active'}
+                  <div className="text-secondary">Data Store</div>
+                  <div className="font-bold text-primary">
+                    {dbStatus === 'Connected' ? 'Supabase + Local' : 'Hybrid Active'}
                   </div>
                 </div>
               </div>
 
-              <div className="px-3 py-2 bg-[#FAF9F6] border border-border flex items-center gap-2">
-                <Coffee className="w-3.5 h-3.5 text-ink" />
+              <div className="px-3 py-2 bg-surface-alt border border-border-subtle flex items-center gap-2">
+                <Coffee className="w-3.5 h-3.5 text-primary" />
                 <div className="font-mono text-[10px] uppercase tracking-wider">
-                  <div className="text-muted">CAFES INDEXED</div>
-                  <div className="font-bold text-ink">{cafesList.length} Spaces</div>
+                  <div className="text-secondary">Cafes</div>
+                  <div className="font-bold text-primary">{cafesList.length} Spaces</div>
                 </div>
               </div>
 
-              <div className="px-3 py-2 bg-[#FAF9F6] border border-border flex items-center gap-2">
-                <Users className="w-3.5 h-3.5 text-ink" />
+              <div className="px-3 py-2 bg-surface-alt border border-border-subtle flex items-center gap-2">
+                <Users className="w-3.5 h-3.5 text-primary" />
                 <div className="font-mono text-[10px] uppercase tracking-wider">
-                  <div className="text-muted">USERS</div>
-                  <div className="font-bold text-ink">{usersList.length} Accounts</div>
+                  <div className="text-secondary">Users</div>
+                  <div className="font-bold text-primary">{usersList.length} Accounts</div>
                 </div>
               </div>
 
@@ -672,11 +670,11 @@ export default function AdminPage() {
               >
                 <Activity className="w-3.5 h-3.5" />
                 <div className="font-mono text-[10px] uppercase tracking-wider text-left">
-                  <div className="opacity-75">SITE MONITOR</div>
+                  <div className="opacity-75">Monitor</div>
                   <div className="font-bold">
                     {unresolvedErrorsCount > 0
-                      ? `${unresolvedErrorsCount} Open Alerts`
-                      : '0 Open Errors'}
+                      ? `${unresolvedErrorsCount} Alerts`
+                      : 'Healthy'}
                   </div>
                 </div>
               </button>
@@ -689,42 +687,42 @@ export default function AdminPage() {
               <button
                 type="button"
                 onClick={() => setActiveTab('CAFES')}
-                className={`inline-flex items-center gap-2 px-4 py-2.5 font-mono text-xs uppercase tracking-widest border transition-colors cursor-pointer ${
+                className={`inline-flex items-center gap-2 px-4 py-2 font-sans text-xs font-semibold border transition-colors cursor-pointer ${
                   activeTab === 'CAFES'
-                    ? 'bg-ink text-white border-ink font-bold'
-                    : 'bg-white text-muted border-border hover:text-ink hover:border-ink'
+                    ? 'bg-primary text-white border-primary'
+                    : 'bg-canvas-white text-secondary border-border-subtle hover:text-primary hover:border-primary'
                 }`}
               >
                 <Coffee className="w-3.5 h-3.5" />
-                1. Coffee Shops ({cafesList.length})
+                <span>Coffee Shops ({cafesList.length})</span>
               </button>
 
               <button
                 type="button"
                 onClick={() => setActiveTab('USERS')}
-                className={`inline-flex items-center gap-2 px-4 py-2.5 font-mono text-xs uppercase tracking-widest border transition-colors cursor-pointer ${
+                className={`inline-flex items-center gap-2 px-4 py-2 font-sans text-xs font-semibold border transition-colors cursor-pointer ${
                   activeTab === 'USERS'
-                    ? 'bg-ink text-white border-ink font-bold'
-                    : 'bg-white text-muted border-border hover:text-ink hover:border-ink'
+                    ? 'bg-primary text-white border-primary'
+                    : 'bg-canvas-white text-secondary border-border-subtle hover:text-primary hover:border-primary'
                 }`}
               >
                 <Users className="w-3.5 h-3.5" />
-                2. Users & Roles ({usersList.length})
+                <span>Users &amp; Roles ({usersList.length})</span>
               </button>
 
               <button
                 type="button"
                 onClick={() => setActiveTab('LOGS')}
-                className={`inline-flex items-center gap-2 px-4 py-2.5 font-mono text-xs uppercase tracking-widest border transition-colors cursor-pointer ${
+                className={`inline-flex items-center gap-2 px-4 py-2 font-sans text-xs font-semibold border transition-colors cursor-pointer ${
                   activeTab === 'LOGS'
-                    ? 'bg-ink text-white border-ink font-bold'
-                    : 'bg-white text-muted border-border hover:text-ink hover:border-ink'
+                    ? 'bg-primary text-white border-primary'
+                    : 'bg-canvas-white text-secondary border-border-subtle hover:text-primary hover:border-primary'
                 }`}
               >
                 <Terminal className="w-3.5 h-3.5" />
-                3. Error Logs & Monitor
+                <span>System Logs</span>
                 {unresolvedErrorsCount > 0 && (
-                  <span className="px-1.5 py-0.2 bg-amber-400 text-ink font-bold text-[10px]">
+                  <span className="px-1.5 py-0.2 bg-amber-400 text-primary font-mono font-bold text-[10px]">
                     {unresolvedErrorsCount}
                   </span>
                 )}
@@ -733,14 +731,14 @@ export default function AdminPage() {
               <button
                 type="button"
                 onClick={() => setActiveTab('CONTENT')}
-                className={`inline-flex items-center gap-2 px-4 py-2.5 font-mono text-xs uppercase tracking-widest border transition-colors cursor-pointer ${
+                className={`inline-flex items-center gap-2 px-4 py-2 font-sans text-xs font-semibold border transition-colors cursor-pointer ${
                   activeTab === 'CONTENT'
-                    ? 'bg-ink text-white border-ink font-bold'
-                    : 'bg-white text-muted border-border hover:text-ink hover:border-ink'
+                    ? 'bg-primary text-white border-primary'
+                    : 'bg-canvas-white text-secondary border-border-subtle hover:text-primary hover:border-primary'
                 }`}
               >
                 <Newspaper className="w-3.5 h-3.5" />
-                4. News & Gimmicks ({newsList.length + gimmicksList.length})
+                <span>News &amp; Events ({newsList.length + gimmicksList.length})</span>
               </button>
             </div>
 
@@ -748,9 +746,9 @@ export default function AdminPage() {
               <button
                 type="button"
                 onClick={loadAllAdminData}
-                className="inline-flex items-center gap-1.5 px-3 py-2 border border-border bg-white hover:border-ink font-mono text-[10px] uppercase tracking-widest text-ink cursor-pointer"
+                className="inline-flex items-center gap-1.5 px-3 py-2 border border-border-subtle bg-canvas-white hover:border-primary font-mono text-[10px] uppercase tracking-wider text-primary cursor-pointer"
               >
-                <RefreshCw className="w-3 h-3" /> Refresh Data
+                <RefreshCw className="w-3 h-3" /> Refresh
               </button>
             </div>
           </div>
@@ -771,22 +769,22 @@ export default function AdminPage() {
            ============================================================ */}
         {activeTab === 'CAFES' && (
           <div className="space-y-6">
-            <div className="bg-white border border-border p-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="bg-white border border-border-subtle p-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div className="flex flex-wrap items-center gap-3 flex-1">
                 <div className="relative w-full sm:w-72">
-                  <Search className="w-3.5 h-3.5 text-muted absolute left-3 top-1/2 -translate-y-1/2" />
+                  <Search className="w-3.5 h-3.5 text-secondary absolute left-3 top-1/2 -translate-y-1/2" />
                   <input
                     type="text"
                     value={cafeSearch}
                     onChange={(e) => setCafeSearch(e.target.value)}
                     placeholder="Search cafes by name, street, roaster..."
-                    className="w-full pl-9 pr-8 py-2 bg-[#FAF9F6] border border-border font-mono text-xs focus:outline-none focus:border-ink"
+                    className="w-full pl-9 pr-8 py-2 bg-[#FAF9F6] border border-border-subtle font-mono text-xs focus:outline-none focus:border-primary"
                   />
                   {cafeSearch && (
                     <button
                       type="button"
                       onClick={() => setCafeSearch('')}
-                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted hover:text-ink"
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-secondary hover:text-primary"
                     >
                       <X className="w-3.5 h-3.5" />
                     </button>
@@ -801,8 +799,8 @@ export default function AdminPage() {
                       onClick={() => setCafeFilterStatus(status)}
                       className={`px-3 py-2 font-mono text-[10px] uppercase tracking-widest border cursor-pointer ${
                         cafeFilterStatus === status
-                          ? 'bg-ink text-white border-ink'
-                          : 'bg-white text-muted border-border hover:text-ink'
+                          ? 'bg-primary text-white border-primary'
+                          : 'bg-white text-secondary border-border-subtle hover:text-primary'
                       }`}
                     >
                       {status === 'ALL' ? 'All Status' : status}
@@ -815,14 +813,14 @@ export default function AdminPage() {
                 <button
                   type="button"
                   onClick={handleSeedDatabase}
-                  className="px-3.5 py-2.5 border border-border bg-[#FAF9F6] hover:border-ink font-mono text-xs uppercase tracking-widest text-ink cursor-pointer"
+                  className="px-3.5 py-2.5 border border-border-subtle bg-[#FAF9F6] hover:border-primary font-mono text-xs uppercase tracking-widest text-primary cursor-pointer"
                 >
                   Sync / Seed DB
                 </button>
                 <button
                   type="button"
                   onClick={openAddCafeModal}
-                  className="inline-flex items-center gap-2 px-4 py-2.5 bg-ink text-white font-mono text-xs uppercase tracking-widest hover:bg-ink/90 cursor-pointer"
+                  className="inline-flex items-center gap-2 px-4 py-2.5 bg-primary text-white font-mono text-xs uppercase tracking-widest hover:bg-primary/90 cursor-pointer"
                 >
                   <Plus className="w-4 h-4" /> + Add Coffee Shop
                 </button>
@@ -830,72 +828,66 @@ export default function AdminPage() {
             </div>
 
             {isLoadingCafes ? (
-              <div className="bg-white border border-border p-12 text-center font-mono text-xs uppercase tracking-widest text-muted">
+              <div className="bg-white border border-border-subtle p-12 text-center font-mono text-xs uppercase tracking-widest text-secondary">
                 Loading coffee shops...
               </div>
             ) : filteredCafes.length === 0 ? (
-              <div className="bg-white border border-border p-12 text-center">
-                <p className="font-mono text-xs uppercase tracking-widest text-muted mb-4">
+              <div className="bg-white border border-border-subtle p-12 text-center">
+                <p className="font-mono text-xs uppercase tracking-widest text-secondary mb-4">
                   No coffee shops match your current filter.
                 </p>
                 <button
                   type="button"
                   onClick={openAddCafeModal}
-                  className="px-4 py-2 bg-ink text-white font-mono text-xs uppercase tracking-widest cursor-pointer"
+                  className="px-4 py-2 bg-primary text-white font-mono text-xs uppercase tracking-widest cursor-pointer"
                 >
                   + Add New Coffee Shop
                 </button>
               </div>
             ) : (
-              <div className="bg-white border border-border overflow-x-auto">
+              <div className="bg-white border border-border-subtle overflow-x-auto">
                 <table className="w-full text-left border-collapse">
                   <thead>
-                    <tr className="border-b border-border bg-[#FAF9F6] font-mono text-[10px] uppercase tracking-widest text-muted">
+                    <tr className="border-b border-border-subtle bg-surface-alt font-mono text-[10px] uppercase tracking-widest text-secondary">
                       <th className="py-3.5 px-4">Coffee Shop</th>
-                      <th className="py-3.5 px-4">Neighborhood & Coords</th>
-                      <th className="py-3.5 px-4">Marker / Roaster</th>
-                      <th className="py-3.5 px-4">Hours & Status</th>
+                      <th className="py-3.5 px-4">Neighborhood</th>
+                      <th className="py-3.5 px-4">Type &amp; Roaster</th>
+                      <th className="py-3.5 px-4">Hours &amp; Status</th>
                       <th className="py-3.5 px-4">Score</th>
                       <th className="py-3.5 px-4 text-right">Actions</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-border text-xs">
+                  <tbody className="divide-y divide-border-subtle text-xs">
                     {filteredCafes.map((cafe) => {
                       const isRoastery =
                         cafe.type === 'PRO' ||
                         (cafe.coffee.roaster || '').toLowerCase().includes('roast')
                       return (
-                        <tr key={cafe.id} className="hover:bg-[#FAF9F6]/60 transition-colors">
+                        <tr key={cafe.id} className="hover:bg-surface-alt/60 transition-colors">
                           <td className="py-3.5 px-4">
                             <div className="flex items-center gap-3">
                               <img
                                 src={cafe.image}
                                 alt={cafe.name}
-                                className="w-11 h-11 object-cover border border-border shrink-0 bg-neutral-100"
+                                className="w-10 h-10 object-cover border border-border-subtle shrink-0 bg-surface-alt"
                               />
                               <div>
-                                <div className="font-bold text-ink flex items-center gap-1.5">
+                                <div className="font-hanken font-bold text-sm text-primary flex items-center gap-1.5">
                                   {cafe.name}
                                   <Link
                                     href={`/cafe/${cafe.id}`}
-                                    className="text-muted hover:text-ink"
+                                    className="text-secondary hover:text-primary"
                                     title="View Cafe Page"
                                   >
                                     <ExternalLink className="w-3 h-3" />
                                   </Link>
                                 </div>
-                                <div className="font-mono text-[10px] text-muted">{cafe.id}</div>
                               </div>
                             </div>
                           </td>
 
                           <td className="py-3.5 px-4">
-                            <div className="text-ink font-medium">{cafe.neighborhood}</div>
-                            <div className="font-mono text-[10px] text-muted flex items-center gap-1 mt-0.5">
-                              <MapPin className="w-2.5 h-2.5" />
-                              {cafe.latitude?.toFixed(4) || '8.4772'},{' '}
-                              {cafe.longitude?.toFixed(4) || '124.6459'}
-                            </div>
+                            <div className="font-sans text-primary">{cafe.neighborhood}</div>
                           </td>
 
                           <td className="py-3.5 px-4">
@@ -903,12 +895,12 @@ export default function AdminPage() {
                               className={`inline-block px-2 py-0.5 font-mono text-[9px] uppercase tracking-widest border ${
                                 isRoastery
                                   ? 'bg-amber-50 text-amber-900 border-amber-200'
-                                  : 'bg-neutral-100 text-ink border-border'
+                                  : 'bg-neutral-100 text-primary border-border-subtle'
                               }`}
                             >
                               {isRoastery ? 'Bean · Roastery' : 'Cup · Cafe'}
                             </span>
-                            <div className="text-[11px] text-muted mt-1 truncate max-w-[180px]">
+                            <div className="text-[11px] text-secondary mt-1 truncate max-w-[180px]">
                               {cafe.coffee.roaster || cafe.coffee.beans}
                             </div>
                           </td>
@@ -931,13 +923,13 @@ export default function AdminPage() {
                               />
                               {cafe.status}
                             </button>
-                            <div className="font-mono text-[10px] text-muted mt-1">
+                            <div className="font-mono text-[10px] text-secondary mt-1">
                               {cafe.hours}
                             </div>
                           </td>
 
                           <td className="py-3.5 px-4">
-                            <span className="px-2 py-1 bg-ink text-white font-mono text-xs font-bold">
+                            <span className="px-2 py-1 bg-primary text-white font-mono text-xs font-bold">
                               {cafe.stats.total.toFixed(1)}
                             </span>
                           </td>
@@ -947,7 +939,7 @@ export default function AdminPage() {
                               <button
                                 type="button"
                                 onClick={() => openEditCafeModal(cafe)}
-                                className="inline-flex items-center gap-1 px-2.5 py-1.5 border border-border bg-white hover:border-ink font-mono text-[10px] uppercase tracking-widest text-ink cursor-pointer"
+                                className="inline-flex items-center gap-1 px-2.5 py-1.5 border border-border-subtle bg-white hover:border-primary font-mono text-[10px] uppercase tracking-widest text-primary cursor-pointer"
                               >
                                 <Edit3 className="w-3 h-3" /> Edit
                               </button>
@@ -975,29 +967,29 @@ export default function AdminPage() {
            ============================================================ */}
         {activeTab === 'USERS' && (
           <div className="space-y-6">
-            <div className="bg-white border border-border p-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="bg-white border border-border-subtle p-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div className="flex flex-wrap items-center gap-3 flex-1">
                 <div className="relative w-full sm:w-72">
-                  <Search className="w-3.5 h-3.5 text-muted absolute left-3 top-1/2 -translate-y-1/2" />
+                  <Search className="w-3.5 h-3.5 text-secondary absolute left-3 top-1/2 -translate-y-1/2" />
                   <input
                     type="text"
                     value={userSearch}
                     onChange={(e) => setUserSearch(e.target.value)}
                     placeholder="Search users by name, email, role..."
-                    className="w-full pl-9 pr-8 py-2 bg-[#FAF9F6] border border-border font-mono text-xs focus:outline-none focus:border-ink"
+                    className="w-full pl-9 pr-8 py-2 bg-[#FAF9F6] border border-border-subtle font-mono text-xs focus:outline-none focus:border-primary"
                   />
                 </div>
 
                 <div className="flex flex-wrap items-center gap-1">
-                  {(['ALL', 'superadmin', 'admin', 'managers', 'user'] as const).map((r) => (
+                  {(['ALL', 'superadmin', 'admin', 'moderator', 'managers', 'user'] as const).map((r) => (
                     <button
                       key={r}
                       type="button"
                       onClick={() => setUserRoleFilter(r)}
                       className={`px-3 py-2 font-mono text-[10px] uppercase tracking-widest border cursor-pointer ${
                         userRoleFilter === r
-                          ? 'bg-ink text-white border-ink'
-                          : 'bg-white text-muted border-border hover:text-ink'
+                          ? 'bg-primary text-white border-primary'
+                          : 'bg-white text-secondary border-border-subtle hover:text-primary'
                       }`}
                     >
                       {r === 'ALL' ? 'All Roles' : r}
@@ -1009,16 +1001,16 @@ export default function AdminPage() {
               <button
                 type="button"
                 onClick={() => setIsUserModalOpen(true)}
-                className="inline-flex items-center gap-2 px-4 py-2.5 bg-ink text-white font-mono text-xs uppercase tracking-widest hover:bg-ink/90 cursor-pointer"
+                className="inline-flex items-center gap-2 px-4 py-2.5 bg-primary text-white font-mono text-xs uppercase tracking-widest hover:bg-primary/90 cursor-pointer"
               >
                 <UserPlus className="w-4 h-4" /> + Add / Invite User
               </button>
             </div>
 
-            <div className="bg-white border border-border overflow-x-auto">
+            <div className="bg-white border border-border-subtle overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="border-b border-border bg-[#FAF9F6] font-mono text-[10px] uppercase tracking-widest text-muted">
+                  <tr className="border-b border-border-subtle bg-[#FAF9F6] font-mono text-[10px] uppercase tracking-widest text-secondary">
                     <th className="py-3.5 px-4">User</th>
                     <th className="py-3.5 px-4">Role Permission</th>
                     <th className="py-3.5 px-4">Assigned Coffee Shop</th>
@@ -1031,8 +1023,8 @@ export default function AdminPage() {
                   {filteredUsers.map((u) => (
                     <tr key={u.id} className="hover:bg-[#FAF9F6]/60">
                       <td className="py-3.5 px-4">
-                        <div className="font-bold text-ink">{u.name}</div>
-                        <div className="font-mono text-[11px] text-muted">{u.email}</div>
+                        <div className="font-bold text-primary">{u.name}</div>
+                        <div className="font-mono text-[11px] text-secondary">{u.email}</div>
                       </td>
 
                       <td className="py-3.5 px-4">
@@ -1041,10 +1033,11 @@ export default function AdminPage() {
                           onChange={(e) =>
                             handleUpdateUserRole(u.id, e.target.value as ManagedUser['role'])
                           }
-                          className="px-2.5 py-1.5 bg-[#FAF9F6] border border-border font-mono text-[11px] uppercase tracking-wider text-ink focus:outline-none focus:border-ink"
+                          className="px-2.5 py-1.5 bg-[#FAF9F6] border border-border-subtle font-mono text-[11px] uppercase tracking-wider text-primary focus:outline-none focus:border-primary"
                         >
                           <option value="superadmin">superadmin</option>
                           <option value="admin">admin</option>
+                          <option value="moderator">moderator</option>
                           <option value="managers">managers</option>
                           <option value="user">user</option>
                         </select>
@@ -1054,7 +1047,7 @@ export default function AdminPage() {
                         <select
                           value={u.managedCafeId || ''}
                           onChange={(e) => handleUpdateUserCafe(u.id, e.target.value)}
-                          className="px-2.5 py-1.5 bg-[#FAF9F6] border border-border font-mono text-[11px] text-ink max-w-[220px] focus:outline-none focus:border-ink"
+                          className="px-2.5 py-1.5 bg-[#FAF9F6] border border-border-subtle font-mono text-[11px] text-primary max-w-[220px] focus:outline-none focus:border-primary"
                         >
                           <option value="">— All / No Specific Shop —</option>
                           {cafesList.map((c) => (
@@ -1079,7 +1072,7 @@ export default function AdminPage() {
                         </button>
                       </td>
 
-                      <td className="py-3.5 px-4 font-mono text-[10px] text-muted">
+                      <td className="py-3.5 px-4 font-mono text-[10px] text-secondary">
                         <div>Last: {u.lastActive}</div>
                         <div>Joined: {u.createdAt}</div>
                       </td>
@@ -1108,50 +1101,50 @@ export default function AdminPage() {
           <div className="space-y-6">
             {/* System Health Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="bg-white border border-border p-4">
-                <div className="flex items-center justify-between font-mono text-[10px] uppercase tracking-widest text-muted mb-2">
+              <div className="bg-white border border-border-subtle p-4">
+                <div className="flex items-center justify-between font-mono text-[10px] uppercase tracking-widest text-secondary mb-2">
                   <span>SUPABASE & DATA STORE</span>
                   <Database className="w-4 h-4 text-emerald-600" />
                 </div>
-                <div className="text-lg font-bold text-ink flex items-center gap-2">
+                <div className="text-lg font-bold text-primary flex items-center gap-2">
                   <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
                   Operational
                 </div>
-                <p className="text-[11px] text-muted mt-1">
+                <p className="text-[11px] text-secondary mt-1">
                   Hybrid cloud + local override store active. Zero data-loss fallback enabled.
                 </p>
               </div>
 
-              <div className="bg-white border border-border p-4">
-                <div className="flex items-center justify-between font-mono text-[10px] uppercase tracking-widest text-muted mb-2">
+              <div className="bg-white border border-border-subtle p-4">
+                <div className="flex items-center justify-between font-mono text-[10px] uppercase tracking-widest text-secondary mb-2">
                   <span>MAP TILE ENGINE</span>
                   <Server className="w-4 h-4 text-emerald-600" />
                 </div>
-                <div className="text-lg font-bold text-ink flex items-center gap-2">
+                <div className="text-lg font-bold text-primary flex items-center gap-2">
                   <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
                   Esri Light Gray Base
                 </div>
-                <p className="text-[11px] text-muted mt-1">
+                <p className="text-[11px] text-secondary mt-1">
                   Clean street-label-free canvas (`maxNativeZoom: 15`) with animated Bean/Cup SVG markers.
                 </p>
               </div>
 
-              <div className="bg-white border border-border p-4">
-                <div className="flex items-center justify-between font-mono text-[10px] uppercase tracking-widest text-muted mb-2">
+              <div className="bg-white border border-border-subtle p-4">
+                <div className="flex items-center justify-between font-mono text-[10px] uppercase tracking-widest text-secondary mb-2">
                   <span>AUTH SESSION LOCK</span>
                   <Lock className="w-4 h-4 text-emerald-600" />
                 </div>
-                <div className="text-lg font-bold text-ink flex items-center gap-2">
+                <div className="text-lg font-bold text-primary flex items-center gap-2">
                   <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
                   Non-Blocking Lock
                 </div>
-                <p className="text-[11px] text-muted mt-1">
+                <p className="text-[11px] text-secondary mt-1">
                   Navigator LockManager deadlock protection active across all tabs.
                 </p>
               </div>
 
-              <div className="bg-white border border-border p-4">
-                <div className="flex items-center justify-between font-mono text-[10px] uppercase tracking-widest text-muted mb-2">
+              <div className="bg-white border border-border-subtle p-4">
+                <div className="flex items-center justify-between font-mono text-[10px] uppercase tracking-widest text-secondary mb-2">
                   <span>UNRESOLVED ALERTS</span>
                   <AlertTriangle
                     className={`w-4 h-4 ${
@@ -1159,26 +1152,26 @@ export default function AdminPage() {
                     }`}
                   />
                 </div>
-                <div className="text-lg font-bold text-ink">
+                <div className="text-lg font-bold text-primary">
                   {unresolvedErrorsCount} Open / {logsList.length} Total Logs
                 </div>
-                <p className="text-[11px] text-muted mt-1">
+                <p className="text-[11px] text-secondary mt-1">
                   Click any log entry below to inspect stack details or mark resolved.
                 </p>
               </div>
             </div>
 
             {/* Filter & Action Toolbar */}
-            <div className="bg-white border border-border p-5 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+            <div className="bg-white border border-border-subtle p-5 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
               <div className="flex flex-wrap items-center gap-3 flex-1">
                 <div className="relative w-full sm:w-64">
-                  <Search className="w-3.5 h-3.5 text-muted absolute left-3 top-1/2 -translate-y-1/2" />
+                  <Search className="w-3.5 h-3.5 text-secondary absolute left-3 top-1/2 -translate-y-1/2" />
                   <input
                     type="text"
                     value={logSearch}
                     onChange={(e) => setLogSearch(e.target.value)}
                     placeholder="Filter logs by source, message..."
-                    className="w-full pl-9 pr-8 py-2 bg-[#FAF9F6] border border-border font-mono text-xs focus:outline-none focus:border-ink"
+                    className="w-full pl-9 pr-8 py-2 bg-[#FAF9F6] border border-border-subtle font-mono text-xs focus:outline-none focus:border-primary"
                   />
                 </div>
 
@@ -1190,8 +1183,8 @@ export default function AdminPage() {
                       onClick={() => setLogSeverityFilter(sev)}
                       className={`px-3 py-2 font-mono text-[10px] uppercase tracking-widest border cursor-pointer ${
                         logSeverityFilter === sev
-                          ? 'bg-ink text-white border-ink'
-                          : 'bg-white text-muted border-border hover:text-ink'
+                          ? 'bg-primary text-white border-primary'
+                          : 'bg-white text-secondary border-border-subtle hover:text-primary'
                       }`}
                     >
                       {sev}
@@ -1211,14 +1204,14 @@ export default function AdminPage() {
                 <button
                   type="button"
                   onClick={handleSimulateErrorLog}
-                  className="px-3.5 py-2 border border-border bg-[#FAF9F6] hover:border-ink font-mono text-[10px] uppercase tracking-widest text-ink cursor-pointer"
+                  className="px-3.5 py-2 border border-border-subtle bg-[#FAF9F6] hover:border-primary font-mono text-[10px] uppercase tracking-widest text-primary cursor-pointer"
                 >
                   + Simulate Error Event
                 </button>
                 <button
                   type="button"
                   onClick={handleClearResolvedLogs}
-                  className="px-3.5 py-2 border border-border bg-white hover:border-ink font-mono text-[10px] uppercase tracking-widest text-muted hover:text-ink cursor-pointer"
+                  className="px-3.5 py-2 border border-border-subtle bg-white hover:border-primary font-mono text-[10px] uppercase tracking-widest text-secondary hover:text-primary cursor-pointer"
                 >
                   Clear Resolved
                 </button>
@@ -1227,10 +1220,10 @@ export default function AdminPage() {
 
             {/* Logs Table + Inspector */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-              <div className="lg:col-span-8 bg-white border border-border overflow-x-auto">
+              <div className="lg:col-span-8 bg-white border border-border-subtle overflow-x-auto">
                 <table className="w-full text-left border-collapse">
                   <thead>
-                    <tr className="border-b border-border bg-[#FAF9F6] font-mono text-[10px] uppercase tracking-widest text-muted">
+                    <tr className="border-b border-border-subtle bg-[#FAF9F6] font-mono text-[10px] uppercase tracking-widest text-secondary">
                       <th className="py-3 px-4">Severity</th>
                       <th className="py-3 px-4">Source & Message</th>
                       <th className="py-3 px-4">HTTP</th>
@@ -1267,7 +1260,7 @@ export default function AdminPage() {
                               )}
                               {log.severity}
                             </span>
-                            <div className="font-mono text-[9px] text-muted mt-1">
+                            <div className="font-mono text-[9px] text-secondary mt-1">
                               {new Date(log.timestamp).toLocaleTimeString([], {
                                 hour: '2-digit',
                                 minute: '2-digit',
@@ -1277,13 +1270,13 @@ export default function AdminPage() {
                           </td>
 
                           <td className="py-3.5 px-4 align-top">
-                            <div className="font-mono text-[10px] uppercase tracking-wider text-muted">
+                            <div className="font-mono text-[10px] uppercase tracking-wider text-secondary">
                               {log.source}
                             </div>
-                            <div className="font-bold text-ink mt-0.5">{log.message}</div>
+                            <div className="font-bold text-primary mt-0.5">{log.message}</div>
                           </td>
 
-                          <td className="py-3.5 px-4 align-top font-mono text-[11px] text-muted">
+                          <td className="py-3.5 px-4 align-top font-mono text-[11px] text-secondary">
                             {log.statusCode || 200}
                           </td>
 
@@ -1311,7 +1304,7 @@ export default function AdminPage() {
               </div>
 
               {/* Right 4 Cols: Stack & Diagnostic Inspector */}
-              <div className="lg:col-span-4 bg-ink text-white border border-ink p-5 flex flex-col justify-between">
+              <div className="lg:col-span-4 bg-primary text-white border border-primary p-5 flex flex-col justify-between">
                 {selectedLog ? (
                   <div>
                     <div className="flex items-center justify-between pb-3 mb-4 border-b border-white/15">
@@ -1355,7 +1348,7 @@ export default function AdminPage() {
                       <button
                         type="button"
                         onClick={() => handleToggleLogResolved(selectedLog.id)}
-                        className="px-4 py-2 bg-emerald-500 text-ink font-mono text-[10px] uppercase tracking-widest font-bold cursor-pointer hover:bg-emerald-400"
+                        className="px-4 py-2 bg-emerald-500 text-primary font-mono text-[10px] uppercase tracking-widest font-bold cursor-pointer hover:bg-emerald-400"
                       >
                         {selectedLog.resolved ? 'Reopen Alert' : 'Mark as Resolved'}
                       </button>
@@ -1385,114 +1378,209 @@ export default function AdminPage() {
         )}
 
         {/* ============================================================
-            TAB 4: NEWS OUTLET & SHOP GIMMICKS MODERATION
+            TAB 4: NEWS & LIVE EVENTS (ADD & MODERATE)
            ============================================================ */}
         {activeTab === 'CONTENT' && (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* City News Dispatches */}
-            <div className="bg-white border border-border p-6">
-              <div className="flex items-center justify-between pb-4 mb-5 border-b border-border">
+          <div className="space-y-8">
+            {/* Admin / Moderator Form to Add News or Live Events */}
+            <div className="bg-white border border-border-subtle p-6">
+              <div className="flex items-center justify-between pb-4 mb-5 border-b border-border-subtle">
                 <div>
-                  <span className="font-mono text-[10px] uppercase tracking-widest text-emerald-700 font-bold">
-                    THE ROOT DISPATCH
-                  </span>
-                  <h3 className="text-lg font-bold text-ink">
-                    Published News Outlet Stories ({newsList.length})
+                  <h3 className="font-hanken text-lg font-bold text-primary">
+                    Add News, Promo, or Live Event
                   </h3>
+                  <p className="font-sans text-xs text-secondary mt-0.5">
+                    Admins and cafe moderators can publish news or live events directly to a cafe on the map
+                  </p>
                 </div>
                 <Link
-                  href="/news"
-                  className="inline-flex items-center gap-1.5 px-3 py-2 bg-ink text-white font-mono text-[10px] uppercase tracking-widest"
+                  href="/"
+                  className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-primary text-white font-sans text-xs font-semibold"
                 >
-                  Open News Outlet <ExternalLink className="w-3 h-3" />
+                  View on Map &amp; News <ExternalLink className="w-3.5 h-3.5" />
                 </Link>
               </div>
 
-              <div className="space-y-3">
-                {newsList.map((article) => (
-                  <div
-                    key={article.id}
-                    className="p-4 bg-[#FAF9F6] border border-border flex items-start justify-between gap-4"
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault()
+                  if (!postTitle.trim() || !postDescription.trim()) return
+                  const targetCafe =
+                    cafesList.find((c) => c.id === postCafeId) || cafesList[0]
+
+                  if (postType === 'event') {
+                    addShopGimmick({
+                      cafeId: targetCafe?.id || 'h-proper-coffee-roasters',
+                      title: postTitle.trim(),
+                      category: 'Community Pop-Up',
+                      schedule: 'Live Event',
+                      description: postDescription.trim(),
+                    })
+                    setGimmicksList(getShopGimmicks())
+                    showToast(`Added live event "${postTitle.trim()}"`)
+                  } else {
+                    addNewsArticle({
+                      title: postTitle.trim(),
+                      subtitle: postDescription.trim(),
+                      category: 'Promo & Perk',
+                      locationArea: 'Corrales & Lifestyle District',
+                      cafeId: targetCafe?.id,
+                      cafeName: targetCafe?.name,
+                      author: userEmail,
+                      readTime: '1 min read',
+                      image:
+                        targetCafe?.image ||
+                        'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=1000&q=80',
+                      body: [postDescription.trim()],
+                    })
+                    setNewsList(getNewsArticles())
+                    showToast(`Published news "${postTitle.trim()}"`)
+                  }
+                  setPostTitle('')
+                  setPostDescription('')
+                }}
+                className="grid grid-cols-1 md:grid-cols-12 gap-4 font-sans text-xs"
+              >
+                <div className="md:col-span-3">
+                  <label className="block font-semibold text-primary mb-1">Type</label>
+                  <select
+                    value={postType}
+                    onChange={(e) => setPostType(e.target.value as 'news' | 'event')}
+                    className="w-full px-3 py-2.5 border border-border-subtle bg-white text-primary"
                   >
-                    <div>
-                      <div className="flex flex-wrap items-center gap-1.5 font-mono text-[9px] uppercase tracking-widest mb-1">
-                        <span className="px-2 py-0.5 bg-ink text-white">{article.category}</span>
-                        <span className="text-muted">{article.locationArea}</span>
-                      </div>
-                      <h4 className="text-xs font-bold text-ink">{article.title}</h4>
-                      <p className="text-[11px] text-muted mt-1 line-clamp-2">
-                        {article.subtitle}
-                      </p>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const updated = deleteNewsArticle(article.id)
-                        setNewsList(updated)
-                        showToast('Removed news dispatch')
-                      }}
-                      className="px-2.5 py-1.5 border border-rose-200 bg-rose-50 text-rose-700 hover:bg-rose-600 hover:text-white font-mono text-[10px] uppercase tracking-widest shrink-0 cursor-pointer"
-                    >
-                      Delete
-                    </button>
-                  </div>
-                ))}
-              </div>
+                    <option value="news">News / Promo</option>
+                    <option value="event">Live Shop Event</option>
+                  </select>
+                </div>
+
+                <div className="md:col-span-4">
+                  <label className="block font-semibold text-primary mb-1">Coffee Shop</label>
+                  <select
+                    value={postCafeId}
+                    onChange={(e) => setPostCafeId(e.target.value)}
+                    className="w-full px-3 py-2.5 border border-border-subtle bg-white text-primary"
+                  >
+                    <option value="">Select a coffee shop...</option>
+                    {cafesList.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.name} ({c.neighborhood})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="md:col-span-5">
+                  <label className="block font-semibold text-primary mb-1">Heading *</label>
+                  <input
+                    type="text"
+                    required
+                    value={postTitle}
+                    onChange={(e) => setPostTitle(e.target.value)}
+                    placeholder="e.g., Weekend Chess Tournament & Free Latte"
+                    className="w-full px-3 py-2.5 border border-border-subtle text-primary"
+                  />
+                </div>
+
+                <div className="md:col-span-9">
+                  <label className="block font-semibold text-primary mb-1">
+                    Small Description *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={postDescription}
+                    onChange={(e) => setPostDescription(e.target.value)}
+                    placeholder="Short description of the news, promo, or live event..."
+                    className="w-full px-3 py-2.5 border border-border-subtle text-primary"
+                  />
+                </div>
+
+                <div className="md:col-span-3 flex items-end">
+                  <button
+                    type="submit"
+                    className="w-full py-2.5 px-4 bg-primary text-white font-semibold hover:opacity-90 cursor-pointer"
+                  >
+                    + Publish to Map
+                  </button>
+                </div>
+              </form>
             </div>
 
-            {/* Shop Studio Gimmicks */}
-            <div className="bg-white border border-border p-6">
-              <div className="flex items-center justify-between pb-4 mb-5 border-b border-border">
-                <div>
-                  <span className="font-mono text-[10px] uppercase tracking-widest text-amber-700 font-bold flex items-center gap-1">
-                    <Sparkles className="w-3 h-3" /> SHOP STUDIO GIMMICKS
-                  </span>
-                  <h3 className="text-lg font-bold text-ink">
-                    Active Shop Gimmicks & Tournaments ({gimmicksList.length})
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              {/* City News & Promos */}
+              <div className="bg-white border border-border-subtle p-6">
+                <div className="flex items-center justify-between pb-4 mb-5 border-b border-border-subtle">
+                  <h3 className="font-hanken text-lg font-bold text-primary">
+                    Published News &amp; Promos ({newsList.length})
                   </h3>
                 </div>
-                <Link
-                  href="/studio"
-                  className="inline-flex items-center gap-1.5 px-3 py-2 bg-ink text-white font-mono text-[10px] uppercase tracking-widest"
-                >
-                  Open Shop Studio <ExternalLink className="w-3 h-3" />
-                </Link>
-              </div>
 
-              <div className="space-y-3">
-                {gimmicksList.map((g) => {
-                  const cafe = cafesList.find((c) => c.id === g.cafeId)
-                  return (
+                <div className="space-y-3">
+                  {newsList.map((article) => (
                     <div
-                      key={g.id}
-                      className="p-4 bg-[#FAF9F6] border border-border flex items-start justify-between gap-4"
+                      key={article.id}
+                      className="p-4 bg-[#FAF9F6] border border-border-subtle flex items-start justify-between gap-4"
                     >
                       <div>
-                        <div className="flex flex-wrap items-center gap-1.5 font-mono text-[9px] uppercase tracking-widest mb-1">
-                          <span className="px-2 py-0.5 bg-amber-100 text-amber-900 font-bold">
-                            {g.category}
-                          </span>
-                          <span className="text-emerald-700 font-bold">
-                            {cafe?.name || g.cafeId}
-                          </span>
-                        </div>
-                        <h4 className="text-xs font-bold text-ink">{g.title}</h4>
-                        <p className="text-[11px] text-muted mt-1">{g.schedule}</p>
+                        <h4 className="font-hanken text-sm font-bold text-primary">
+                          {article.title}
+                        </h4>
+                        <p className="font-sans text-xs text-secondary mt-1 line-clamp-2">
+                          {article.subtitle}
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const updated = deleteNewsArticle(article.id)
+                          setNewsList(updated)
+                          showToast('Removed news item')
+                        }}
+                        className="px-2.5 py-1.5 border border-rose-200 bg-rose-50 text-rose-700 hover:bg-rose-600 hover:text-white font-sans text-xs font-medium shrink-0 cursor-pointer"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Live Shop Events */}
+              <div className="bg-white border border-border-subtle p-6">
+                <div className="flex items-center justify-between pb-4 mb-5 border-b border-border-subtle">
+                  <h3 className="font-hanken text-lg font-bold text-primary">
+                    Active Live Shop Events ({gimmicksList.length})
+                  </h3>
+                </div>
+
+                <div className="space-y-3">
+                  {gimmicksList.map((g) => (
+                    <div
+                      key={g.id}
+                      className="p-4 bg-[#FAF9F6] border border-border-subtle flex items-start justify-between gap-4"
+                    >
+                      <div>
+                        <h4 className="font-hanken text-sm font-bold text-primary">
+                          {g.title}
+                        </h4>
+                        <p className="font-sans text-xs text-secondary mt-1 line-clamp-2">
+                          {g.description}
+                        </p>
                       </div>
                       <button
                         type="button"
                         onClick={() => {
                           const updated = deleteShopGimmick(g.id)
                           setGimmicksList(updated)
-                          showToast('Removed shop gimmick')
+                          showToast('Removed live event')
                         }}
-                        className="px-2.5 py-1.5 border border-rose-200 bg-rose-50 text-rose-700 hover:bg-rose-600 hover:text-white font-mono text-[10px] uppercase tracking-widest shrink-0 cursor-pointer"
+                        className="px-2.5 py-1.5 border border-rose-200 bg-rose-50 text-rose-700 hover:bg-rose-600 hover:text-white font-sans text-xs font-medium shrink-0 cursor-pointer"
                       >
                         Delete
                       </button>
                     </div>
-                  )
-                })}
+                  ))}
+                </div>
               </div>
             </div>
           </div>
@@ -1504,26 +1592,26 @@ export default function AdminPage() {
          ============================================================ */}
       {isCafeModalOpen && (
         <div
-          className="fixed inset-0 z-50 bg-ink/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto"
+          className="fixed inset-0 z-50 bg-primary/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto"
           onClick={() => setIsCafeModalOpen(false)}
         >
           <div
-            className="bg-white border border-ink max-w-3xl w-full p-6 sm:p-8 shadow-2xl max-h-[92vh] overflow-y-auto"
+            className="bg-white border border-primary max-w-3xl w-full p-6 sm:p-8 shadow-2xl max-h-[92vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between pb-4 mb-6 border-b border-border">
+            <div className="flex items-center justify-between pb-4 mb-6 border-b border-border-subtle">
               <div>
                 <span className="font-mono text-[10px] uppercase tracking-widest text-emerald-700 font-bold">
                   {editingCafe ? `EDITING: ${editingCafe.id}` : 'NEW COFFEE SHOP RECORD'}
                 </span>
-                <h2 className="text-xl font-bold text-ink mt-0.5">
+                <h2 className="text-xl font-bold text-primary mt-0.5">
                   {editingCafe ? `Edit ${editingCafe.name}` : 'Add Coffee Shop to Map & Directory'}
                 </h2>
               </div>
               <button
                 type="button"
                 onClick={() => setIsCafeModalOpen(false)}
-                className="w-8 h-8 border border-border flex items-center justify-center text-muted hover:text-ink cursor-pointer"
+                className="w-8 h-8 border border-border-subtle flex items-center justify-center text-secondary hover:text-primary cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -1541,7 +1629,7 @@ export default function AdminPage() {
                     value={formName}
                     onChange={(e) => setFormName(e.target.value)}
                     placeholder="e.g., H Proper Coffee Roasters"
-                    className="w-full px-3 py-2 border border-border font-mono focus:outline-none focus:border-ink"
+                    className="w-full px-3 py-2 border border-border-subtle font-mono focus:outline-none focus:border-primary"
                   />
                 </div>
 
@@ -1552,7 +1640,7 @@ export default function AdminPage() {
                   <select
                     value={formStatus}
                     onChange={(e) => setFormStatus(e.target.value as 'Open' | 'Closed')}
-                    className="w-full px-3 py-2 border border-border font-mono bg-white focus:outline-none focus:border-ink"
+                    className="w-full px-3 py-2 border border-border-subtle font-mono bg-white focus:outline-none focus:border-primary"
                   >
                     <option value="Open">Open (Animated Bean/Cup)</option>
                     <option value="Closed">Closed (Red X Marker)</option>
@@ -1571,7 +1659,7 @@ export default function AdminPage() {
                     value={formNeighborhood}
                     onChange={(e) => setFormNeighborhood(e.target.value)}
                     placeholder="e.g., Corrales Ave, Cagayan de Oro"
-                    className="w-full px-3 py-2 border border-border font-mono focus:outline-none focus:border-ink"
+                    className="w-full px-3 py-2 border border-border-subtle font-mono focus:outline-none focus:border-primary"
                   />
                 </div>
 
@@ -1584,7 +1672,7 @@ export default function AdminPage() {
                     required
                     value={formLocation}
                     onChange={(e) => setFormLocation(e.target.value)}
-                    className="w-full px-3 py-2 border border-border font-mono focus:outline-none focus:border-ink"
+                    className="w-full px-3 py-2 border border-border-subtle font-mono focus:outline-none focus:border-primary"
                   />
                 </div>
 
@@ -1598,13 +1686,13 @@ export default function AdminPage() {
                     value={formHours}
                     onChange={(e) => setFormHours(e.target.value)}
                     placeholder="7:00 AM - 10:00 PM or 24/7"
-                    className="w-full px-3 py-2 border border-border font-mono focus:outline-none focus:border-ink"
+                    className="w-full px-3 py-2 border border-border-subtle font-mono focus:outline-none focus:border-primary"
                   />
                 </div>
               </div>
 
               {/* Map Coordinates & Marker Type */}
-              <div className="p-4 bg-[#FAF9F6] border border-border grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="p-4 bg-[#FAF9F6] border border-border-subtle grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
                   <label className="block font-mono text-[10px] uppercase tracking-widest font-bold mb-1">
                     Latitude (CDO ~8.4772) *
@@ -1617,7 +1705,7 @@ export default function AdminPage() {
                     onChange={(e) =>
                       setFormLatitude(e.target.value === '' ? '' : parseFloat(e.target.value))
                     }
-                    className="w-full px-3 py-2 bg-white border border-border font-mono focus:outline-none focus:border-ink"
+                    className="w-full px-3 py-2 bg-white border border-border-subtle font-mono focus:outline-none focus:border-primary"
                   />
                 </div>
 
@@ -1633,7 +1721,7 @@ export default function AdminPage() {
                     onChange={(e) =>
                       setFormLongitude(e.target.value === '' ? '' : parseFloat(e.target.value))
                     }
-                    className="w-full px-3 py-2 bg-white border border-border font-mono focus:outline-none focus:border-ink"
+                    className="w-full px-3 py-2 bg-white border border-border-subtle font-mono focus:outline-none focus:border-primary"
                   />
                 </div>
 
@@ -1644,7 +1732,7 @@ export default function AdminPage() {
                   <select
                     value={formType}
                     onChange={(e) => setFormType(e.target.value)}
-                    className="w-full px-3 py-2 bg-white border border-border font-mono focus:outline-none focus:border-ink"
+                    className="w-full px-3 py-2 bg-white border border-border-subtle font-mono focus:outline-none focus:border-primary"
                   >
                     <option value="PRO">PRO · Roastery (Animated Bean Marker)</option>
                     <option value="INT">INT · Specialty Cafe (Animated Cup Marker)</option>
@@ -1663,7 +1751,7 @@ export default function AdminPage() {
                     required
                     value={formImage}
                     onChange={(e) => setFormImage(e.target.value)}
-                    className="w-full px-3 py-2 border border-border font-mono focus:outline-none focus:border-ink"
+                    className="w-full px-3 py-2 border border-border-subtle font-mono focus:outline-none focus:border-primary"
                   />
                 </div>
 
@@ -1676,7 +1764,7 @@ export default function AdminPage() {
                     value={formTopFeature}
                     onChange={(e) => setFormTopFeature(e.target.value)}
                     placeholder="e.g., Bukidnon Single-Origin Roaster"
-                    className="w-full px-3 py-2 border border-border font-mono focus:outline-none focus:border-ink"
+                    className="w-full px-3 py-2 border border-border-subtle font-mono focus:outline-none focus:border-primary"
                   />
                 </div>
               </div>
@@ -1694,7 +1782,7 @@ export default function AdminPage() {
                     max="10"
                     value={formTaste}
                     onChange={(e) => setFormTaste(parseFloat(e.target.value) || 8)}
-                    className="w-full px-2.5 py-2 border border-border font-mono"
+                    className="w-full px-2.5 py-2 border border-border-subtle font-mono"
                   />
                 </div>
                 <div>
@@ -1708,7 +1796,7 @@ export default function AdminPage() {
                     max="10"
                     value={formVibeScore}
                     onChange={(e) => setFormVibeScore(parseFloat(e.target.value) || 8)}
-                    className="w-full px-2.5 py-2 border border-border font-mono"
+                    className="w-full px-2.5 py-2 border border-border-subtle font-mono"
                   />
                 </div>
                 <div>
@@ -1722,7 +1810,7 @@ export default function AdminPage() {
                     max="10"
                     value={formService}
                     onChange={(e) => setFormService(parseFloat(e.target.value) || 8)}
-                    className="w-full px-2.5 py-2 border border-border font-mono"
+                    className="w-full px-2.5 py-2 border border-border-subtle font-mono"
                   />
                 </div>
                 <div>
@@ -1733,7 +1821,7 @@ export default function AdminPage() {
                     type="text"
                     value={formWifi}
                     onChange={(e) => setFormWifi(e.target.value)}
-                    className="w-full px-2.5 py-2 border border-border font-mono"
+                    className="w-full px-2.5 py-2 border border-border-subtle font-mono"
                   />
                 </div>
                 <div>
@@ -1744,7 +1832,7 @@ export default function AdminPage() {
                     type="text"
                     value={formOutlets}
                     onChange={(e) => setFormOutlets(e.target.value)}
-                    className="w-full px-2.5 py-2 border border-border font-mono"
+                    className="w-full px-2.5 py-2 border border-border-subtle font-mono"
                   />
                 </div>
                 <div>
@@ -1755,7 +1843,7 @@ export default function AdminPage() {
                     type="text"
                     value={formBeans}
                     onChange={(e) => setFormBeans(e.target.value)}
-                    className="w-full px-2.5 py-2 border border-border font-mono"
+                    className="w-full px-2.5 py-2 border border-border-subtle font-mono"
                   />
                 </div>
               </div>
@@ -1769,7 +1857,7 @@ export default function AdminPage() {
                   required
                   value={formReview}
                   onChange={(e) => setFormReview(e.target.value)}
-                  className="w-full p-3 border border-border font-mono focus:outline-none focus:border-ink"
+                  className="w-full p-3 border border-border-subtle font-mono focus:outline-none focus:border-primary"
                 />
               </div>
 
@@ -1782,21 +1870,21 @@ export default function AdminPage() {
                   value={formPromos}
                   onChange={(e) => setFormPromos(e.target.value)}
                   placeholder="e.g., 20% off single-origin pour-overs every weekday morning"
-                  className="w-full p-3 border border-border font-mono text-[11px] focus:outline-none focus:border-ink"
+                  className="w-full p-3 border border-border-subtle font-mono text-[11px] focus:outline-none focus:border-primary"
                 />
               </div>
 
-              <div className="pt-4 border-t border-border flex items-center justify-end gap-3">
+              <div className="pt-4 border-t border-border-subtle flex items-center justify-end gap-3">
                 <button
                   type="button"
                   onClick={() => setIsCafeModalOpen(false)}
-                  className="px-4 py-2.5 border border-border font-mono text-xs uppercase tracking-widest text-muted hover:text-ink cursor-pointer"
+                  className="px-4 py-2.5 border border-border-subtle font-mono text-xs uppercase tracking-widest text-secondary hover:text-primary cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2.5 bg-ink text-white font-mono text-xs uppercase tracking-widest hover:bg-ink/90 cursor-pointer"
+                  className="px-5 py-2.5 bg-primary text-white font-mono text-xs uppercase tracking-widest hover:bg-primary/90 cursor-pointer"
                 >
                   {editingCafe ? 'Save Changes' : 'Create Coffee Shop'}
                 </button>
@@ -1811,24 +1899,24 @@ export default function AdminPage() {
          ============================================================ */}
       {isUserModalOpen && (
         <div
-          className="fixed inset-0 z-50 bg-ink/60 backdrop-blur-xs flex items-center justify-center p-4"
+          className="fixed inset-0 z-50 bg-primary/60 backdrop-blur-xs flex items-center justify-center p-4"
           onClick={() => setIsUserModalOpen(false)}
         >
           <div
-            className="bg-white border border-ink max-w-md w-full p-6 sm:p-8 shadow-2xl"
+            className="bg-white border border-primary max-w-md w-full p-6 sm:p-8 shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between pb-4 mb-5 border-b border-border">
+            <div className="flex items-center justify-between pb-4 mb-5 border-b border-border-subtle">
               <div>
                 <span className="font-mono text-[10px] uppercase tracking-widest text-emerald-700 font-bold">
                   USER & RBAC DIRECTORY
                 </span>
-                <h3 className="text-lg font-bold text-ink mt-0.5">Add / Invite Platform User</h3>
+                <h3 className="text-lg font-bold text-primary mt-0.5">Add / Invite Platform User</h3>
               </div>
               <button
                 type="button"
                 onClick={() => setIsUserModalOpen(false)}
-                className="w-8 h-8 border border-border flex items-center justify-center text-muted hover:text-ink cursor-pointer"
+                className="w-8 h-8 border border-border-subtle flex items-center justify-center text-secondary hover:text-primary cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -1845,7 +1933,7 @@ export default function AdminPage() {
                   value={newUserName}
                   onChange={(e) => setNewUserName(e.target.value)}
                   placeholder="e.g., Marco Villanueva"
-                  className="w-full px-3 py-2.5 border border-border font-mono"
+                  className="w-full px-3 py-2.5 border border-border-subtle font-mono"
                 />
               </div>
 
@@ -1859,7 +1947,7 @@ export default function AdminPage() {
                   value={newUserEmail}
                   onChange={(e) => setNewUserEmail(e.target.value)}
                   placeholder="e.g., owner@roastery.ph"
-                  className="w-full px-3 py-2.5 border border-border font-mono"
+                  className="w-full px-3 py-2.5 border border-border-subtle font-mono"
                 />
               </div>
 
@@ -1870,10 +1958,11 @@ export default function AdminPage() {
                 <select
                   value={newUserRole}
                   onChange={(e) => setNewUserRole(e.target.value as ManagedUser['role'])}
-                  className="w-full px-3 py-2.5 border border-border font-mono bg-white"
+                  className="w-full px-3 py-2.5 border border-border-subtle font-mono bg-white"
                 >
                   <option value="superadmin">superadmin (Full Platform Access)</option>
                   <option value="admin">admin (Admin & Moderation)</option>
+                  <option value="moderator">moderator (Cafe News & Events Moderator)</option>
                   <option value="managers">managers (Shop Owner / Studio Manager)</option>
                   <option value="user">user (Curator & Community Member)</option>
                 </select>
@@ -1886,7 +1975,7 @@ export default function AdminPage() {
                 <select
                   value={newUserCafeId}
                   onChange={(e) => setNewUserCafeId(e.target.value)}
-                  className="w-full px-3 py-2.5 border border-border font-mono bg-white"
+                  className="w-full px-3 py-2.5 border border-border-subtle font-mono bg-white"
                 >
                   <option value="">— None / All Cafes —</option>
                   {cafesList.map((c) => (
@@ -1897,17 +1986,17 @@ export default function AdminPage() {
                 </select>
               </div>
 
-              <div className="pt-4 border-t border-border flex items-center justify-end gap-2">
+              <div className="pt-4 border-t border-border-subtle flex items-center justify-end gap-2">
                 <button
                   type="button"
                   onClick={() => setIsUserModalOpen(false)}
-                  className="px-4 py-2 border border-border font-mono text-xs uppercase tracking-widest text-muted cursor-pointer"
+                  className="px-4 py-2 border border-border-subtle font-mono text-xs uppercase tracking-widest text-secondary cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 bg-ink text-white font-mono text-xs uppercase tracking-widest cursor-pointer"
+                  className="px-5 py-2 bg-primary text-white font-mono text-xs uppercase tracking-widest cursor-pointer"
                 >
                   Add User
                 </button>

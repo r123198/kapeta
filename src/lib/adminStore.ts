@@ -19,7 +19,7 @@ export interface ManagedUser {
   id: string
   name: string
   email: string
-  role: 'superadmin' | 'admin' | 'managers' | 'user'
+  role: 'superadmin' | 'admin' | 'moderator' | 'managers' | 'user'
   managedCafeId: string | null
   status: 'Active' | 'Suspended'
   createdAt: string
@@ -469,4 +469,50 @@ export function deleteNewsArticle(id: string): NewsArticle[] {
   }
   return updated
 }
+
+export function canUserModerateCafe(
+  userEmail: string | null | undefined,
+  userRole: string | null | undefined,
+  cafeId?: string
+): boolean {
+  if (!userEmail && !userRole) return false
+  const normalizedRole = (userRole || '').toLowerCase()
+  if (
+    normalizedRole === 'superadmin' ||
+    normalizedRole === 'admin' ||
+    normalizedRole === 'moderator' ||
+    normalizedRole === 'managers'
+  ) {
+    // Check if they have a specific cafe restriction in ManagedUsers
+    if (userEmail && cafeId) {
+      const managed = getManagedUsers().find(
+        (u) => u.email.toLowerCase() === userEmail.toLowerCase()
+      )
+      if (
+        managed &&
+        (managed.role === 'moderator' || managed.role === 'managers') &&
+        managed.managedCafeId &&
+        managed.managedCafeId !== cafeId
+      ) {
+        return false
+      }
+    }
+    return true
+  }
+
+  if (userEmail) {
+    const managed = getManagedUsers().find(
+      (u) => u.email.toLowerCase() === userEmail.toLowerCase() && u.status === 'Active'
+    )
+    if (!managed) return false
+    if (managed.role === 'superadmin' || managed.role === 'admin') return true
+    if (managed.role === 'moderator' || managed.role === 'managers') {
+      if (!cafeId || !managed.managedCafeId) return true
+      return managed.managedCafeId === cafeId
+    }
+  }
+
+  return false
+}
+
 

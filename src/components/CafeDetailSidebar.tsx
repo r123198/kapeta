@@ -1,5 +1,4 @@
 import { Bookmark, ExternalLink } from 'lucide-react'
-import Tooltip from '@/components/Tooltip'
 import { Cafe, CafeSocials } from '@/lib/data'
 
 interface CafeDetailSidebarProps {
@@ -29,37 +28,29 @@ export default function CafeDetailSidebar({ cafe, socials, isLoggedIn = false, i
 
       {/* Quality Ratings */}
       <div className="p-6 border-b border-border-subtle">
-        <h3 className="font-mono text-label-caps text-secondary mb-4 uppercase tracking-widest font-semibold">
+        <h3 className="font-mono text-label-caps text-secondary mb-3 uppercase tracking-widest font-semibold">
           Specialty Scores
         </h3>
         <div className="grid grid-cols-4 border border-border-subtle divide-x divide-border-subtle text-center">
-          <Tooltip content="Taste Score (0-10)">
-            <div className="p-1.5 flex flex-col justify-center bg-surface-container-lowest cursor-help h-full">
-              <span className="font-mono text-[9px] tracking-widest text-secondary border-b border-border-subtle pb-1 mb-1">TST</span>
-              <span className="font-mono text-label-caps text-primary">{cafe.stats.taste.toFixed(1)}</span>
-            </div>
-          </Tooltip>
+          <div className="p-2 flex flex-col justify-center bg-surface-container-lowest h-full">
+            <span className="font-mono text-[10px] uppercase tracking-wider text-secondary pb-0.5">Taste</span>
+            <span className="font-mono text-sm font-bold text-primary">{cafe.stats.taste.toFixed(1)}</span>
+          </div>
           
-          <Tooltip content="Vibe Score (0-10)">
-            <div className="p-1.5 flex flex-col justify-center bg-surface-container-lowest cursor-help h-full">
-              <span className="font-mono text-[9px] tracking-widest text-secondary border-b border-border-subtle pb-1 mb-1">VIB</span>
-              <span className="font-mono text-label-caps text-primary">{cafe.stats.vibe.toFixed(1)}</span>
-            </div>
-          </Tooltip>
+          <div className="p-2 flex flex-col justify-center bg-surface-container-lowest h-full">
+            <span className="font-mono text-[10px] uppercase tracking-wider text-secondary pb-0.5">Vibe</span>
+            <span className="font-mono text-sm font-bold text-primary">{cafe.stats.vibe.toFixed(1)}</span>
+          </div>
 
-          <Tooltip content="Service Score (0-10)">
-            <div className="p-1.5 flex flex-col justify-center bg-surface-container-lowest cursor-help h-full">
-              <span className="font-mono text-[9px] tracking-widest text-secondary border-b border-border-subtle pb-1 mb-1">SRV</span>
-              <span className="font-mono text-label-caps text-primary">{cafe.stats.service.toFixed(1)}</span>
-            </div>
-          </Tooltip>
+          <div className="p-2 flex flex-col justify-center bg-surface-container-lowest h-full">
+            <span className="font-mono text-[10px] uppercase tracking-wider text-secondary pb-0.5">Service</span>
+            <span className="font-mono text-sm font-bold text-primary">{cafe.stats.service.toFixed(1)}</span>
+          </div>
 
-          <Tooltip content="Total Overall Score (0-10)">
-            <div className="p-1.5 flex flex-col justify-center bg-primary text-on-primary cursor-help h-full">
-              <span className="font-mono text-[9px] tracking-widest border-b border-on-primary/30 pb-1 mb-1">TOT</span>
-              <span className="font-mono text-label-caps">{cafe.stats.total.toFixed(1)}</span>
-            </div>
-          </Tooltip>
+          <div className="p-2 flex flex-col justify-center bg-primary text-on-primary h-full">
+            <span className="font-mono text-[10px] uppercase tracking-wider text-on-primary/80 pb-0.5">Overall</span>
+            <span className="font-mono text-sm font-bold">{cafe.stats.total.toFixed(1)}</span>
+          </div>
         </div>
       </div>
 

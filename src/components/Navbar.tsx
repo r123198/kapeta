@@ -20,15 +20,16 @@ export default function Navbar() {
     router.push('/')
   }
 
-  // Filter links: show logged-in navigation items
+  // Filter links by auth and role permissions
   const filteredLinks = NAVIGATION_LINKS.filter(link => {
-    if (
-      link.path === '/directory' ||
-      link.path === '/badges' ||
-      link.path === '/studio' ||
-      link.path === '/admin'
-    ) {
+    if (link.path === '/directory' || link.path === '/badges') {
       return !!user
+    }
+    if (link.path === '/studio') {
+      return !!user && (role === 'superadmin' || role === 'admin' || role === 'moderator' || role === 'managers')
+    }
+    if (link.path === '/admin') {
+      return !!user && (role === 'superadmin' || role === 'admin')
     }
     return true
   })
@@ -54,11 +55,6 @@ export default function Navbar() {
           <Link href="/" className="font-hanken text-headline-lg-mobile md:text-headline-lg font-bold text-primary tracking-tight">
             ROOT
           </Link>
-          {user && (
-            <span className="font-mono text-label-caps text-secondary mt-1 hidden md:block">
-              A Curated Directory
-            </span>
-          )}
         </div>
 
         {/* Middle: Desktop Navigation Links */}
@@ -67,9 +63,9 @@ export default function Navbar() {
             <Link
               key={index}
               href={link.path}
-              className={`font-mono text-label-caps pb-1 transition-all ${isActive(link.path)
-                  ? 'text-primary font-bold border-b-2 border-primary'
-                  : 'text-secondary font-medium hover:text-primary'
+              className={`font-sans text-xs font-semibold uppercase tracking-wider pb-1 transition-all ${isActive(link.path)
+                  ? 'text-primary border-b-2 border-primary'
+                  : 'text-secondary hover:text-primary'
                 }`}
             >
               {link.label}
@@ -78,15 +74,15 @@ export default function Navbar() {
         </nav>
 
         {/* Right: Desktop Actions */}
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
           {user ? (
-            <div className="flex items-center gap-4">
-              <span className="hidden lg:block font-mono text-[10px] uppercase text-secondary">
-                {user.email} <span className="font-bold text-primary">({role})</span>
+            <div className="flex items-center gap-3">
+              <span className="hidden lg:block font-mono text-[11px] text-secondary">
+                {user.email?.split('@')[0]}
               </span>
               <button
                 onClick={handleLogout}
-                className="font-mono text-label-caps text-secondary hover:text-primary transition-colors border border-border-subtle px-3 py-1.5 hover:border-primary"
+                className="font-mono text-[11px] uppercase tracking-wider text-secondary hover:text-primary transition-colors border border-border-subtle px-3 py-1.5 hover:border-primary"
               >
                 Log Out
               </button>
@@ -96,9 +92,10 @@ export default function Navbar() {
               href="/login"
               title="Log In"
               aria-label="Log In"
-              className="w-9 h-9 flex items-center justify-center border border-border-subtle text-primary hover:bg-surface-alt hover:border-primary transition-colors"
+              className="px-3.5 py-1.5 flex items-center gap-1.5 border border-border-subtle text-primary font-mono text-[11px] uppercase tracking-wider hover:bg-surface-alt hover:border-primary transition-colors"
             >
-              <User className="w-4 h-4" />
+              <User className="w-3.5 h-3.5" />
+              <span>Sign In</span>
             </Link>
           )}
         </div>
@@ -143,8 +140,8 @@ export default function Navbar() {
       )}
 
       {/* Mobile Bottom Navigation Bar (Persistent for quick context switching on mobile) */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-canvas-white border-t border-border-subtle flex justify-around py-3 z-50 md:hidden">
-        {filteredLinks.map((link, index) => {
+      <nav className="fixed bottom-0 left-0 right-0 bg-canvas-white border-t border-border-subtle flex justify-around py-2.5 z-50 md:hidden">
+        {filteredLinks.slice(0, 4).map((link, index) => {
           const IconComponent =
             link.path === '/'
               ? Map
@@ -164,10 +161,10 @@ export default function Navbar() {
             <Link
               key={index}
               href={link.path}
-              className={`flex flex-col items-center ${isActive(link.path) ? 'text-primary' : 'text-secondary'}`}
+              className={`flex flex-col items-center px-2 py-0.5 ${isActive(link.path) ? 'text-primary font-semibold' : 'text-secondary'}`}
             >
-              <IconComponent className={`w-6 h-6 ${isActive(link.path) ? 'stroke-[2.5px]' : ''}`} />
-              <span className="font-mono text-[9px] uppercase tracking-wider mt-1">{labelName}</span>
+              <IconComponent className={`w-5 h-5 ${isActive(link.path) ? 'stroke-[2.25px]' : ''}`} />
+              <span className="font-sans text-[10px] tracking-wide mt-1">{labelName}</span>
             </Link>
           )
         })}

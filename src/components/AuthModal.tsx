@@ -107,12 +107,12 @@ export default function AuthModal({ isOpen, initialTab, onClose, onSuccess }: Au
         {/* Header Text */}
         <div className="mb-6">
           <h3 className="font-hanken text-title-md font-bold text-primary">
-            {tab === 'login' ? 'Authentication Required' : 'Create an Account'}
+            {tab === 'login' ? 'Sign In' : 'Create an Account'}
           </h3>
           <p className="font-sans text-body-sm text-secondary mt-1">
             {tab === 'login' 
-              ? 'Please sign in to save your favorite coffee workspaces.' 
-              : 'Join ROOT as an Average Joe and start bookmarking spaces!'}
+              ? 'Sign in to curate and save coffee workspaces.' 
+              : 'Create an account to build your personal coffee directory.'}
           </p>
         </div>
 

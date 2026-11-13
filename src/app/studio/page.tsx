@@ -11,7 +11,6 @@ import {
   Plus,
   Trash2,
   Check,
-  HelpCircle,
   TrendingUp,
   MessageSquareQuote,
   Store,
@@ -19,7 +18,6 @@ import {
   AlertCircle,
 } from 'lucide-react'
 import PageShell from '@/components/PageShell'
-import Tooltip from '@/components/Tooltip'
 import { useAuth } from '@/hooks/useAuth'
 import { useCafes } from '@/hooks/useCafes'
 import {
@@ -51,7 +49,7 @@ const QUICK_GIMMICK_PRESETS: {
   perk: string
 }[] = [
   {
-    label: '♟️ Chess Tournament',
+    label: 'Chess Tournament',
     category: 'Tournament & Games',
     title: 'Saturday Rapid Chess Tournament & Cold Brew Flights',
     schedule: 'This Saturday · 2:00 PM – 7:00 PM',
@@ -60,7 +58,7 @@ const QUICK_GIMMICK_PRESETS: {
     perk: 'Free iced latte for all players · 2 bags of roasted beans for 1st place',
   },
   {
-    label: '🛒 Mobile Event Cart',
+    label: 'Mobile Event Cart',
     category: 'Mobile Cart & Events',
     title: 'Mobile Specialty Espresso Cart — Now Bookable for Events',
     schedule: 'Open for Weddings, Pop-Ups & Office Bookings',
@@ -69,7 +67,7 @@ const QUICK_GIMMICK_PRESETS: {
     perk: 'Custom signature drink menu + 2 baristas included',
   },
   {
-    label: '🍸 Coffee by Day, Bar by Night',
+    label: 'Coffee by Day, Bar by Night',
     category: 'Day-to-Night Concept',
     title: 'Coffee & Deep Work by Day · Craft Bar & Vinyl by Night',
     schedule: 'Fridays & Saturdays · 6:00 PM – 12:00 AM',
@@ -78,7 +76,7 @@ const QUICK_GIMMICK_PRESETS: {
     perk: 'Free bar bites with your first evening craft drink',
   },
   {
-    label: '🚗 Carwash + Coffee Hub',
+    label: 'Carwash + Coffee Hub',
     category: 'Hybrid Concept',
     title: 'Detail Carwash + Specialty Coffee Combo',
     schedule: 'Daily · 8:00 AM – 6:00 PM',
@@ -87,7 +85,7 @@ const QUICK_GIMMICK_PRESETS: {
     perk: 'Complimentary Americano or Iced Tea with every full wash',
   },
   {
-    label: '🎵 Vinyl & Acoustic Night',
+    label: 'Vinyl & Acoustic Night',
     category: 'Community Pop-Up',
     title: 'Analog Vinyl Listening & Acoustic Sessions',
     schedule: 'Sunday Evenings · 5:00 PM – 9:00 PM',
@@ -283,35 +281,26 @@ export default function ShopStudioPage() {
         <section className="py-10 md:py-14 px-6 md:px-12 bg-surface border-b border-border-subtle">
           <div className="max-w-7xl mx-auto flex flex-col lg:flex-row lg:items-end justify-between gap-6">
             <div>
-              <div className="inline-flex items-center gap-2 px-2.5 py-1 bg-amber-50 border border-amber-300 font-mono text-[10px] uppercase tracking-widest text-amber-900 font-bold mb-3">
-                <Megaphone className="w-3.5 h-3.5 text-amber-700" />
-                <span>For Coffee Shop Owners &amp; Community Managers</span>
-              </div>
-              <h1 className="font-hanken text-[36px] md:text-display-lg font-extrabold text-primary uppercase tracking-tighter leading-none">
-                SHOP STUDIO &amp; GIMMICKS
+              <span className="font-mono text-label-caps uppercase text-secondary block mb-2">
+                Owner &amp; Community Studio
+              </span>
+              <h1 className="font-hanken text-headline-lg md:text-display-lg font-extrabold text-primary tracking-tight">
+                Shop Studio
               </h1>
-              <p className="font-sans text-body-lg text-secondary max-w-2xl mt-3">
-                See real lived-experience demand from your visitors—and announce your shop&apos;s unique concepts, chess tournaments, mobile event carts, or day-to-night happenings directly onto the Map.
+              <p className="font-sans text-body-lg text-secondary max-w-2xl mt-2">
+                Review community demand from visitors and publish events, concepts, or announcements directly to the map.
               </p>
             </div>
 
             {/* Active Coffee Shop Selector */}
             <div className="w-full lg:w-80 bg-canvas-white border border-border-subtle p-4 shrink-0">
-              <div className="flex items-center justify-between mb-1.5">
-                <label
-                  htmlFor="studio-cafe-select"
-                  className="font-mono text-[10px] uppercase tracking-widest text-secondary flex items-center gap-1.5"
-                >
-                  <Store className="w-3.5 h-3.5 text-primary" />
-                  <span>Managing Coffee Shop</span>
-                </label>
-                <Tooltip
-                  position="left"
-                  content="Switch between coffee shops to inspect their community demand or post new events and gimmicks."
-                >
-                  <HelpCircle className="w-3.5 h-3.5 text-secondary cursor-help" />
-                </Tooltip>
-              </div>
+              <label
+                htmlFor="studio-cafe-select"
+                className="font-mono text-[10px] uppercase tracking-widest text-secondary flex items-center gap-1.5 mb-1.5"
+              >
+                <Store className="w-3.5 h-3.5 text-primary" />
+                <span>Managing Coffee Shop</span>
+              </label>
               <select
                 id="studio-cafe-select"
                 value={selectedCafeId}
@@ -336,56 +325,42 @@ export default function ShopStudioPage() {
             <div className="lg:col-span-5 space-y-6">
               {/* 1. Community Demand Signals Card */}
               <div className="bg-canvas-white border border-border-subtle border-l-4 border-l-emerald-600 p-6 space-y-5">
-                <div className="flex items-start justify-between gap-2 border-b border-border-subtle pb-4">
-                  <div>
-                    <div className="flex items-center gap-1.5">
-                      <TrendingUp className="w-4 h-4 text-emerald-700" />
-                      <span className="font-mono text-[10px] uppercase tracking-widest text-emerald-800 font-bold">
-                        Live Community Demand
-                      </span>
-                    </div>
-                    <h2 className="font-hanken text-title-md font-bold text-primary mt-1">
-                      What Guests Want Next at {selectedCafe?.name}
-                    </h2>
-                    <p className="font-sans text-[12px] text-secondary mt-0.5">
-                      Aggregated from customer lived-experience curations on the Map.
-                    </p>
+                <div className="border-b border-border-subtle pb-4">
+                  <div className="flex items-center gap-1.5">
+                    <TrendingUp className="w-4 h-4 text-emerald-700" />
+                    <span className="font-mono text-[10px] uppercase tracking-widest text-emerald-800 font-bold">
+                      Community Demand
+                    </span>
                   </div>
-                  <Tooltip
-                    position="left"
-                    content="When users curate your cafe on the Map, their answers to 'Uniqueness' and 'What Should They Do Next?' appear here in real time."
-                  >
-                    <HelpCircle className="w-4 h-4 text-secondary cursor-help shrink-0" />
-                  </Tooltip>
+                  <h2 className="font-hanken text-title-md font-bold text-primary mt-1">
+                    What Guests Want Next at {selectedCafe?.name}
+                  </h2>
                 </div>
 
                 {/* Top Requested Next Moves */}
                 <div>
                   <div className="flex items-center justify-between mb-2.5">
                     <span className="font-mono text-[10px] uppercase tracking-wider text-secondary font-bold">
-                      Top Requested Gimmicks &amp; Offerings
-                    </span>
-                    <span className="font-mono text-[9px] text-emerald-700 uppercase font-semibold">
-                      Click &ldquo;Launch&rdquo; to pre-fill
+                      Top Requested Offerings
                     </span>
                   </div>
 
-                  <div className="space-y-3">
+                  <div className="space-y-2.5">
                     {demandInsights.topDemandRequests.slice(0, 4).map((req) => (
                       <div
                         key={req.label}
                         className="p-3 bg-surface-alt border border-border-subtle space-y-1.5"
                       >
                         <div className="flex items-center justify-between gap-2">
-                          <span className="font-mono text-[10px] uppercase font-bold text-primary">
+                          <span className="font-sans text-xs font-semibold text-primary">
                             {req.label}
                           </span>
                           <button
                             type="button"
                             onClick={() => handleTurnDemandIntoGimmick(req.label)}
-                            className="px-2 py-0.5 bg-emerald-700 hover:bg-emerald-800 text-white font-mono text-[9px] uppercase tracking-wider transition-colors shrink-0"
+                            className="px-2.5 py-1 bg-emerald-700 hover:bg-emerald-800 text-white font-mono text-[10px] uppercase tracking-wider transition-colors shrink-0"
                           >
-                            Launch →
+                            Use Template
                           </button>
                         </div>
                         <div className="w-full h-1.5 bg-canvas-white border border-border-subtle overflow-hidden">
@@ -394,9 +369,8 @@ export default function ShopStudioPage() {
                             style={{ width: `${req.percentage}%` }}
                           />
                         </div>
-                        <span className="block font-mono text-[9px] text-secondary uppercase">
-                          {req.percentage}% of curators requested this ({req.count}{' '}
-                          {req.count === 1 ? 'vote' : 'votes'})
+                        <span className="block font-mono text-[10px] text-secondary">
+                          {req.percentage}% requested ({req.count} {req.count === 1 ? 'vote' : 'votes'})
                         </span>
                       </div>
                     ))}
@@ -451,25 +425,17 @@ export default function ShopStudioPage() {
                 onSubmit={handleSaveIdentity}
                 className="bg-canvas-white border border-border-subtle p-6 space-y-4"
               >
-                <div className="flex items-start justify-between gap-2 border-b border-border-subtle pb-3">
-                  <div>
-                    <span className="font-mono text-[10px] uppercase tracking-widest text-secondary">
-                      Shop Identity &amp; Vision
-                    </span>
-                    <h2 className="font-hanken text-title-md font-bold text-primary">
-                      Signature Concept &amp; Mission
-                    </h2>
-                  </div>
-                  <Tooltip
-                    position="left"
-                    content="Your Signature Concept badge appears at the top of your cafe's drawer on the Map so visitors immediately know your hook."
-                  >
-                    <HelpCircle className="w-4 h-4 text-secondary cursor-help shrink-0" />
-                  </Tooltip>
+                <div className="border-b border-border-subtle pb-3">
+                  <span className="font-mono text-[10px] uppercase tracking-widest text-secondary">
+                    Shop Identity
+                  </span>
+                  <h2 className="font-hanken text-title-md font-bold text-primary">
+                    Signature Concept &amp; Mission
+                  </h2>
                 </div>
 
                 <div>
-                  <label className="block font-mono text-[10px] uppercase tracking-wider text-primary font-bold mb-1.5">
+                  <label className="block font-sans text-xs font-semibold text-primary mb-1.5">
                     Signature Concept Hook
                   </label>
                   <div className="flex flex-wrap gap-1.5 mb-2">
@@ -559,33 +525,22 @@ export default function ShopStudioPage() {
                 noValidate
                 className="bg-canvas-white border border-border-subtle border-l-4 border-l-amber-500 p-6 space-y-5"
               >
-                <div className="flex items-start justify-between gap-3 border-b border-border-subtle pb-4">
-                  <div>
-                    <div className="flex items-center gap-1.5">
-                      <Sparkles className="w-4 h-4 text-amber-600" />
-                      <span className="font-mono text-[10px] uppercase tracking-widest text-amber-800 font-bold">
-                        Announce a Gimmick or Happening
-                      </span>
-                    </div>
-                    <h2 className="font-hanken text-title-md font-bold text-primary mt-1">
-                      Host a Tournament, Pop-Up, or New Concept
-                    </h2>
-                    <p className="font-sans text-[12px] text-secondary mt-0.5">
-                      Tap a quick template below or write your own announcement. Published items appear immediately on your cafe&apos;s Map drawer.
-                    </p>
+                <div className="border-b border-border-subtle pb-4">
+                  <div className="flex items-center gap-1.5">
+                    <Sparkles className="w-4 h-4 text-amber-600" />
+                    <span className="font-mono text-[10px] uppercase tracking-widest text-amber-800 font-bold">
+                      New Announcement
+                    </span>
                   </div>
-                  <Tooltip
-                    position="left"
-                    content="Need inspiration? Click any preset pill below to auto-fill a ready-to-post announcement."
-                  >
-                    <HelpCircle className="w-4 h-4 text-secondary cursor-help shrink-0" />
-                  </Tooltip>
+                  <h2 className="font-hanken text-title-md font-bold text-primary mt-1">
+                    Publish a Happening or Concept
+                  </h2>
                 </div>
 
                 {/* 1-Tap Quick Templates */}
                 <div>
                   <span className="block font-mono text-[10px] uppercase tracking-wider text-secondary mb-2">
-                    Quick-Fill Gimmick Templates (1-Tap)
+                    Quick Templates
                   </span>
                   <div className="flex flex-wrap gap-1.5">
                     {QUICK_GIMMICK_PRESETS.map((preset) => (
@@ -593,7 +548,7 @@ export default function ShopStudioPage() {
                         key={preset.label}
                         type="button"
                         onClick={() => handleApplyPreset(preset)}
-                        className="px-3 py-1.5 bg-amber-50/70 hover:bg-amber-100 border border-amber-300 font-mono text-[10px] uppercase tracking-wider text-amber-900 font-semibold transition-colors"
+                        className="px-3 py-1.5 bg-surface-alt hover:bg-amber-50 border border-border-subtle hover:border-amber-400 font-sans text-xs font-medium text-primary transition-colors"
                       >
                         {preset.label}
                       </button>

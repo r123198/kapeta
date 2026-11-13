@@ -38,27 +38,27 @@ export default function ImageGallery({ images, altPrefix }: ImageGalleryProps) {
         <>
           <button 
             onClick={handlePrev}
-            className="absolute left-4 top-1/2 -translate-y-1/2 bg-canvas-white/80 hover:bg-canvas-white text-primary p-2 rounded-full border border-border-subtle shadow-sm transition-all opacity-0 group-hover/gallery:opacity-100 z-10 flex items-center justify-center"
+            className="absolute left-4 top-1/2 -translate-y-1/2 bg-canvas-white/90 hover:bg-canvas-white text-primary w-9 h-9 border border-border-subtle shadow-sm transition-all opacity-0 group-hover/gallery:opacity-100 z-10 flex items-center justify-center"
             aria-label="Previous image"
           >
             <ChevronLeft className="w-5 h-5" />
           </button>
           <button 
             onClick={handleNext}
-            className="absolute right-4 top-1/2 -translate-y-1/2 bg-canvas-white/80 hover:bg-canvas-white text-primary p-2 rounded-full border border-border-subtle shadow-sm transition-all opacity-0 group-hover/gallery:opacity-100 z-10 flex items-center justify-center"
+            className="absolute right-4 top-1/2 -translate-y-1/2 bg-canvas-white/90 hover:bg-canvas-white text-primary w-9 h-9 border border-border-subtle shadow-sm transition-all opacity-0 group-hover/gallery:opacity-100 z-10 flex items-center justify-center"
             aria-label="Next image"
           >
             <ChevronRight className="w-5 h-5" />
           </button>
 
           {/* Dots Indicators */}
-          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-1.5 z-10 bg-black/45 backdrop-blur-sm px-3 py-1 rounded-full">
+          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-1.5 z-10 bg-black/45 backdrop-blur-sm px-3 py-1.5">
             {images.map((_, idx) => (
               <button 
                 key={idx}
                 onClick={() => setActiveIndex(idx)}
-                className={`w-2 h-2 rounded-full transition-all ${
-                  idx === activeIndex ? 'bg-canvas-white w-4' : 'bg-canvas-white/50'
+                className={`h-1.5 transition-all ${
+                  idx === activeIndex ? 'bg-canvas-white w-5' : 'bg-canvas-white/50 w-1.5'
                 }`}
                 aria-label={`Go to slide ${idx + 1}`}
               />
